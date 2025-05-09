@@ -24,7 +24,7 @@ async function placeOrder() {
     const response = await fetch(`https://d69b05db-awpl-jagannath-wellness-billing.akashparida-official.workers.dev//place-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customer_name: customerName, product_names: productNames, total_price: totalPrice, total_SP: totalSP })
+        body: JSON.stringify({ customer_name: customerName, product_names: productNames, total_cost: totalPrice, total_SP: totalSP })
     });
 
     if (response.ok) {

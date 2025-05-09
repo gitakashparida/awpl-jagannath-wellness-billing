@@ -90,13 +90,19 @@ async function placeOrder() {
     return;
   }
 
-  const orderPayload = fetchedProducts.map(product => ({
+  // Create a single payload for the entire order
+  const productNames = fetchedProducts.map(p => p.name).join(", ");
+  const totalCost = parseFloat(document.getElementById("totalCost").textContent);
+  const totalSP = parseInt(document.getElementById("totalSP").textContent);
+  const orderDate = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+  const orderPayload = {
     customer_name: customerName,
-    product_names: product.name,
-    total_price: parseFloat(document.getElementById("totalCost").textContent),
-    total_SP: parseInt(document.getElementById("totalSP").textContent),
-    order_date: new Date().toISOString().replace('T', ' ').substring(0, 19)
-  }));
+    product_names: productNames,
+    total_cost: totalCost,
+    total_sp: totalSP,  // Fixed this line to match DB column
+    order_date: orderDate
+  };
 
   try {
     const response = await fetch('https://delicate-meadow-ca6a.akashparida-official.workers.dev/place-order', {
@@ -113,7 +119,8 @@ async function placeOrder() {
       fetchedProducts = [];
       document.getElementById("productTable").style.display = "none";
     } else {
-      throw new Error(`Failed to place order. Status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Failed to place order. Status: ${response.status} - ${errorText}`);
     }
   } catch (error) {
     console.error("Error placing order:", error.message);
