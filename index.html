@@ -1,24 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billing Platform</title>
-    <link rel="stylesheet" href="style.css">
+  <title>Jagannath Wellness Order Placing Platform</title>
 </head>
 <body>
-    <h2>Jagannath Wellness Billing Platform</h2>
-    
-    <input type="text" id="product-name" placeholder="Enter product name">
-    <button onclick="fetchProduct()">Get Details</button>
-    
-    <p id="product-details"></p>
+  <h1>Place an Order</h1>
 
-    <h3>Place Order</h3>
-    <input type="text" id="customer-name" placeholder="Customer Name">
-    <button onclick="placeOrder()">Submit Order</button>
+  <label>Product Name:
+    <input type="text" id="productName">
+  </label>
+  <button onclick="fetchProduct()">Get Product Details</button>
 
-    <script src="script.js"></script>
+  <div id="productInfo" style="display:none;">
+    <p>MRP: <span id="mrp"></span></p>
+    <p>Price: <span id="price"></span></p>
+    <p>SP: <span id="sp"></span></p>
+
+    <label>Quantity:
+      <input type="number" id="quantity" value="1" min="1">
+    </label>
+  </div>
+
+  <h3>Customer Details</h3>
+  <label>Name: <input type="text" id="customerName"></label><br>
+  <label>Phone: <input type="text" id="customerPhone"></label><br><br>
+
+  <button onclick="placeOrder()">Place Order</button>
+
+  <p id="orderResult"></p>
+
+  <script>
+    let fetchedProduct = null;
+
+    async function fetchProduct() {
+      const name = document.getElementById('productName').value;
+      const response = await fetch('https://delicate-meadow-ca6a.akashparida-official.workers.dev/get-product?name=' + encodeURIComponent(name));
+
+      const data = await response.json();
+      if (data.length === 0) {
+        alert("Product not found.");
+        return;
+      }
+
+      fetchedProduct = data[0];
+
+      document.getElementById('mrp').textContent = fetchedProduct.MRP;
+      document.getElementById('price').textContent = fetchedProduct.price;
+      document.getElementById('sp').textContent = fetchedProduct.SP;
+      document.getElementById('productInfo').style.display = 'block';
+    }
+
+    async function placeOrder() {
+      if (!fetchedProduct) {
+        alert("Please fetch a product first.");
+        return;
+      }
+
+      const quantity = parseInt(document.getElementById('quantity').value);
+      const totalValue = quantity * fetchedProduct.price;
+      const totalSP = quantity * fetchedProduct.SP;
+
+      const order = {
+        customer_name: document.getElementById('customerName').value,
+        customer_phone: document.getElementById('customerPhone').value,
+        items: JSON.stringify([{
+          name: fetchedProduct.name,
+          uid: fetchedProduct.uid,
+          price: fetchedProduct.price,
+          quantity: quantity
+        }]),
+        total_value: totalValue,
+        total_sp: totalSP
+      };
+
+      const response = await fetch('https://delicate-meadow-ca6a.akashparida-official.workers.dev/place-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(order)
+      });
+
+      if (response.ok) {
+        document.getElementById('orderResult').textContent = 'Order placed successfully!';
+      } else {
+        document.getElementById('orderResult').textContent = 'Failed to place order.';
+      }
+    }
+  </script>
 </body>
 </html>
-
