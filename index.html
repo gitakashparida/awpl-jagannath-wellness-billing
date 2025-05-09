@@ -60,9 +60,9 @@
         const product = data[0];
 
         // Update the product details in the UI.
-        document.getElementById('mrp').textContent = product.MRP;
+        document.getElementById('mrp').textContent = product.mrp;
         document.getElementById('price').textContent = product.price;
-        document.getElementById('sp').textContent = product.SP;
+        document.getElementById('sp').textContent = product.sp;
         document.getElementById('productInfo').style.display = 'block';
         fetchedProduct = product;
       } catch (error) {
@@ -85,23 +85,18 @@
 
       const quantity = parseInt(document.getElementById('quantity').value);
       const totalValue = quantity * fetchedProduct.price;
-      const totalSP = quantity * fetchedProduct.SP;
+      const totalSP = quantity * fetchedProduct.sp;
 
       // Create an order with a single item.
       // The order should contain the customer's name, phone number, and
       // the product details.
       const order = {
-        customer_name: document.getElementById('customerName').value,
-        customer_phone: document.getElementById('customerPhone').value,
-        items: JSON.stringify([{
-          name: fetchedProduct.name,
-          uid: fetchedProduct.uid,
-          price: fetchedProduct.price,
-          quantity: quantity
-        }]),
-        total_value: totalValue,
-        total_sp: totalSP
-      };
+  customer_name: document.getElementById('customerName').value.trim(),
+  product_names: fetchedProduct.name,
+  total_price: parseFloat(totalValue.toFixed(2)),  // Ensure it's a number
+  total_sp: totalSP
+}
+;
 
       try {
         // Make a POST request to the server with the order details.
@@ -121,8 +116,10 @@
           throw new Error(`Failed to place order. Status: ${response.status}`);
         }
       } catch (error) {
-        console.error("Error placing order:", error);
+        console.error("Error placing order:", JSON.stringify(order), error.message);
         document.getElementById('orderResult').textContent = 'Failed to place order.';
+        alert("Order Failed. JSON : " + JSON.stringify(order));
+
       }
     }
   </script>
