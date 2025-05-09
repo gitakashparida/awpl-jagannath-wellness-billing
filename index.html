@@ -64,10 +64,11 @@
         document.getElementById('price').textContent = product.price;
         document.getElementById('sp').textContent = product.SP;
         document.getElementById('productInfo').style.display = 'block';
+        fetchedProduct = product;
       } catch (error) {
         // Handle any errors that occur during the fetch.
-        console.error("Error fetching product:", error);
-        alert("Failed to fetch product details. Please try again.");
+        console.error("Error fetching product:", error.message);
+        alert("Failed to fetch product details: " + error.message);
       }
     }
 
