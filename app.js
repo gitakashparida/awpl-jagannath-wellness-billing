@@ -1,137 +1,127 @@
-// Improved styling for modern look
-let fetchedProducts = [];
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("product-search");
+    const customerNameInput = document.getElementById("customer-name");
+    const dropdown = document.getElementById("dropdown");
+    const orderSummary = document.getElementById("order-summary");
+    const placeOrderButton = document.getElementById("place-order");
+    const totalCostElement = document.getElementById("total-cost");
+    const totalSpElement = document.getElementById("total-sp");
+    let products = [];
+    let selectedProducts = [];
 
-function addProductRow(product) {
-  const table = document.getElementById("productTable");
-  const tbody = document.getElementById("productRows");
-  const row = document.createElement("tr");
+    // Fetch the product list from the backend
+    fetch("https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/products", {
+        headers: {
+            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
+            "Content-Type": "application/json",
+        },
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            products = data;
+            console.log("Fetched products:", products); // Log the fetched data
+        })
+        .catch((error) => {
+            console.error("Error fetching products:", error);
+            alert("Failed to load product list. Please try again later.");
+        });
 
-  row.innerHTML = `
-    <td class="px-4 py-2">${product.name}</td>
-    <td class="px-4 py-2">${product.mrp}</td>
-    <td class="px-4 py-2">${product.price}</td>
-    <td class="px-4 py-2">${product.sp}</td>
-    <td class="px-4 py-2"><input type="number" value="1" min="1" class="quantity border rounded px-2 py-1" onchange="updateTotals()"></td>
-    <td class="px-4 py-2 subtotal">${product.price}</td>
-    <td class="px-4 py-2"><button class="remove-btn bg-red-500 text-white rounded px-2 py-1" onclick="removeProduct(this)">Remove</button></td>
-  `;
+    // Filter and display the dropdown as user types
+    searchInput.addEventListener("input", () => {
+        const query = searchInput.value.toLowerCase();
+        dropdown.innerHTML = "";
 
-  tbody.appendChild(row);
-  table.style.display = "table";
-  fetchedProducts.push(product);
-  updateTotals();
-}
+        if (query) {
+            const filtered = products.filter((product) =>
+                product.name.toLowerCase().includes(query)
+            );
 
-function removeProduct(button) {
-  const row = button.parentNode.parentNode;
-  const index = row.rowIndex - 1;
-  fetchedProducts.splice(index, 1);
-  row.remove();
-  updateTotals();
-  if (fetchedProducts.length === 0) {
-    document.getElementById("productTable").style.display = "none";
-  }
-}
+            filtered.forEach((product) => {
+                const item = document.createElement("div");
+                item.textContent = product.name;
+                item.classList.add("dropdown-item");
+                item.addEventListener("click", () => {
+                    addProductToOrder(product);
+                    searchInput.value = "";
+                    dropdown.innerHTML = "";
+                });
+                dropdown.appendChild(item);
+            });
 
-function updateTotals() {
-  let totalCost = 0;
-  let totalSP = 0;
-
-  const rows = document.querySelectorAll("#productRows tr");
-
-  rows.forEach((row, index) => {
-    const quantity = parseInt(row.querySelector(".quantity").value);
-    const price = parseFloat(fetchedProducts[index].price);
-    const sp = parseInt(fetchedProducts[index].sp);
-
-    const subtotal = quantity * price;
-    row.querySelector(".subtotal").textContent = subtotal.toFixed(2);
-
-    totalCost += subtotal;
-    totalSP += quantity * sp;
-  });
-
-  document.getElementById("totalCost").textContent = totalCost.toFixed(2);
-  document.getElementById("totalSP").textContent = totalSP;
-}
-
-async function fetchProduct() {
-  const name = document.getElementById('productName').value.trim();
-
-  if (!name) {
-    alert("Please enter a product name");
-    return;
-  }
-
-  try {
-    const response = await fetch(`https://delicate-meadow-ca6a.akashparida-official.workers.dev/get-product?name=${encodeURIComponent(name)}`);
-    const data = await response.json();
-
-    if (data.length === 0) {
-      alert("Product not found.");
-      return;
-    }
-
-    addProductRow(data[0]);
-    document.getElementById('productName').value = '';
-
-  } catch (error) {
-    console.error("Error fetching product:", error.message);
-    alert("Failed to fetch product details: " + error.message);
-  }
-}
-
-async function placeOrder() {
-  const customerName = document.getElementById("customerName").value.trim();
-  const customerPhone = document.getElementById("customerPhone").value.trim();
-
-  if (!customerName || !customerPhone || fetchedProducts.length === 0) {
-    alert("Please fill in all customer details and add at least one product.");
-    return;
-  }
-
-  // Create a single payload for the entire order
-  const productNames = fetchedProducts.map(p => p.name).join(", ");
-  const totalCost = parseFloat(document.getElementById("totalCost").textContent);
-  const totalSP = parseInt(document.getElementById("totalSP").textContent);
-  const orderDate = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-  const orderPayload = {
-    customer_name: customerName,
-    product_names: productNames,
-    total_cost: totalCost,
-    total_sp: totalSP,  // Fixed this line to match DB column
-    order_date: orderDate
-  };
-
-  try {
-    const response = await fetch('https://delicate-meadow-ca6a.akashparida-official.workers.dev/place-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderPayload)
+            dropdown.style.display = "block";
+        } else {
+            dropdown.style.display = "none";
+        }
     });
 
-    if (response.ok) {
-      alert("Order placed successfully!");
-      document.getElementById("productRows").innerHTML = "";
-      document.getElementById("totalCost").textContent = "0";
-      document.getElementById("totalSP").textContent = "0";
-      fetchedProducts = [];
-      document.getElementById("productTable").style.display = "none";
-    } else {
-      const errorText = await response.text();
-      throw new Error(`Failed to place order. Status: ${response.status} - ${errorText}`);
-    }
-  } catch (error) {
-    console.error("Error placing order:", error.message);
-    alert("Failed to place order. Error: " + error.message);
-  }
-}
+    // Hide dropdown when clicking outside
+    document.addEventListener("click", (event) => {
+        if (!dropdown.contains(event.target) && event.target !== searchInput) {
+            dropdown.style.display = "none";
+        }
+    });
 
-// Align customer details
-const customerDetails = document.querySelectorAll(".customer-detail");
-customerDetails.forEach(element => {
-  element.style.display = "flex";
-  element.style.alignItems = "center";
-  element.style.marginBottom = "1rem";
+    // Add selected product to order
+    function addProductToOrder(product) {
+        selectedProducts.push(product);
+        updateOrderSummary();
+    }
+
+    // Update order summary
+    function updateOrderSummary() {
+        orderSummary.innerHTML = "";
+        let totalCost = 0;
+        let totalSp = 0;
+
+        selectedProducts.forEach((product) => {
+            const item = document.createElement("div");
+            item.textContent = `${product.name} - ₹${product.price} (SP: ${product.sp})`;
+            orderSummary.appendChild(item);
+            totalCost += product.price;
+            totalSp += product.sp;
+        });
+
+        totalCostElement.textContent = `Total Cost: ₹${totalCost}`;
+        totalSpElement.textContent = `Total SP: ${totalSp}`;
+    }
+
+    // Place order
+    placeOrderButton.addEventListener("click", () => {
+        if (selectedProducts.length === 0) {
+            alert("No products selected!");
+            return;
+        }
+
+        const customerName = customerNameInput.value.trim() || "Anonymous Customer";
+
+        const orderData = {
+            customer_name: customerName,
+            product_names: selectedProducts.map((p) => p.name),
+            total_cost: selectedProducts.reduce((sum, p) => sum + p.price, 0),
+            total_sp: selectedProducts.reduce((sum, p) => sum + p.sp, 0),
+        };
+        console.log(orderData);
+
+        fetch("https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders", {
+            method: "POST",
+            headers: {
+                apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
+                Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(orderData)
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                alert("Order placed successfully!");
+                selectedProducts = [];
+                customerNameInput.value = "";
+                updateOrderSummary();
+            })
+            .catch((error) => {
+                console.error("Error placing order:", error);
+                alert("Failed to place order. Please try again.");
+            });
+    });
 });

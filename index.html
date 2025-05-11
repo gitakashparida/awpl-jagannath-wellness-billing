@@ -1,52 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Jagannath Wellness Order Placing Platform</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jagannath Wellness - AWPL Billing</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<h1>Jagannath Wellness Order Placing Platform</h1>
+<h1>Jagannath Wellness - AWPL Billing</h1>
+<input type="text" id="customer-name" placeholder="Enter customer name..." autocomplete="off" />
+<input type="text" id="product-search" placeholder="Search products..." autocomplete="off" />
+<div id="dropdown" class="dropdown"></div>
 
-<label>Product Name:
-  <input type="text" id="productName">
-</label>
-<button onclick="fetchProduct()">Add Product</button>
-
-<table id="productTable" border="1" style="width: 100%; margin-top: 20px; display: none;">
-  <thead>
-  <tr>
-    <th>Product Name</th>
-    <th>MRP</th>
-    <th>Price</th>
-    <th>SP</th>
-    <th>Quantity</th>
-    <th>Subtotal</th>
-    <th>Remove</th>
-  </tr>
-  </thead>
-  <tbody id="productRows">
-  </tbody>
-  <tfoot>
-  <tr>
-    <td colspan="5"><strong>Total Cost:</strong></td>
-    <td><span id="totalCost">0</span></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td colspan="5"><strong>Total SP:</strong></td>
-    <td><span id="totalSP">0</span></td>
-    <td></td>
-  </tr>
-  </tfoot>
-</table>
-
-<h3>Customer Details</h3>
-<label>Name: <input type="text" id="customerName"></label><br>
-<label>Phone: <input type="text" id="customerPhone"></label><br><br>
-
-<button onclick="placeOrder()">Place Order</button>
-
-<p id="orderResult"></p>
+<h2>Order Summary</h2>
+<div id="order-summary" class="order-summary"></div>
+<div id="total-cost" class="total-cost">Total Cost: 0</div>
+<div id="total-sp" class="total-sp">Total SP: 0</div>
+<button id="place-order">Place Order</button>
 
 <script src="app.js"></script>
 </body>
