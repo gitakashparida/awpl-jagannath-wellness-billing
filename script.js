@@ -12,7 +12,7 @@ async function fetchProduct() {
             `Added: ${product[0].name} - Price: $${product[0].price} - SP: ${product[0].SP}`;
     } else {
         document.getElementById("product-details").innerText = "Product not found";
-    }//
+    }
 }
 
 async function placeOrder() {
