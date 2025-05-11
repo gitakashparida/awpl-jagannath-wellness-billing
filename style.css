@@ -4,7 +4,13 @@ body {
     background-color: #f9f9f9;
 }
 
-h1, h2 {
+h1, h1 {
+    text-align: center; /* Center the text horizontally */
+    margin-top: 20px; /* Adjust top margin as needed */
+    margin-bottom: 20px; /* Adjust bottom margin as needed */
+}
+
+h2 {
     margin-bottom: 20px;
 }
 

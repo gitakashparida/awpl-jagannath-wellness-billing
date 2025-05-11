@@ -10,13 +10,26 @@
 <h1>Jagannath Wellness - AWPL Billing</h1>
 <input type="text" id="customer-name" placeholder="Enter customer name..." autocomplete="off" />
 <input type="text" id="product-search" placeholder="Search products..." autocomplete="off" />
+<input type="number" id="product-quantity" placeholder="Enter quantity..."/>
+<h2>     </h2>
+<button id="add-product">Add to cart</button>
 <div id="dropdown" class="dropdown"></div>
 
 <h2>Order Summary</h2>
 <div id="order-summary" class="order-summary"></div>
 <div id="total-cost" class="total-cost">Total Cost: 0</div>
 <div id="total-sp" class="total-sp">Total SP: 0</div>
+<!-- Place Order Button -->
 <button id="place-order">Place Order</button>
+
+<!-- Get Last 10 Orders Section -->
+<h2>Order History</h2>
+<input type="text" id="customer-name-search" placeholder="Enter customer name..." autocomplete="off" />
+<h2>     </h2>
+<button id="get-orders">Get Last 10 Orders</button>
+
+<!-- Display Last 10 Orders -->
+<div id="order-history"></div>
 
 <script src="app.js"></script>
 </body>
