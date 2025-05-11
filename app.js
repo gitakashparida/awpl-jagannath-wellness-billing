@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .then((response) => response.json())
         .then((data) => {
             products = data;
-            console.log("Fetched products:", products); // Log the fetched data
         })
         .catch((error) => {
             console.error("Error fetching products:", error);
@@ -101,7 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
             total_cost: selectedProducts.reduce((sum, p) => sum + p.price, 0),
             total_sp: selectedProducts.reduce((sum, p) => sum + p.sp, 0),
         };
-        console.log(orderData);
 
         fetch("https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders", {
             method: "POST",
@@ -110,15 +108,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(orderData)
+            body: JSON.stringify(orderData),
         })
-            .then((response) => response.json())
-            .then((data) => {
-                alert("Order placed successfully!");
-                selectedProducts = [];
-                customerNameInput.value = "";
-                updateOrderSummary();
-            })
+            .then((response) => {
+
+                    // Check if the response status is 201 (Created)
+                    if (response.status === 201) {
+                        alert("Order placed successfully!");
+                        selectedProducts = [];
+                        customerNameInput.value = "";
+                        updateOrderSummary();
+                    } else {
+                        throw new Error(`Failed to place order. Status: ${response.status}`);
+                    }
+                })
             .catch((error) => {
                 console.error("Error placing order:", error);
                 alert("Failed to place order. Please try again.");
