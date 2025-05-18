@@ -177,11 +177,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const orderData = {
             customer_name: customerName,
-            product_names: selectedProducts.map((p) => `${p.name} x Qty: ${p.quantity} x Price: ${p.price} x SP: ${p.sp}`),
+            product_names: selectedProducts.map((p) => `${p.name} x Qty: ${p.quantity} x Price: ${p.price} x SP: ${p.sp}`).join(", "),
             total_cost: selectedProducts.reduce((sum, p) => sum + p.price * p.quantity, 0),
             total_sp: selectedProducts.reduce((sum, p) => sum + p.sp * p.quantity, 0),
         };
-
+        console.log("orderData", orderData);
         fetch("https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders", {
             method: "POST",
             headers: {
