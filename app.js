@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const orderData = {
             customer_name: customerName,
-            product_names: selectedProducts.map((p) => `${p.name} x ${p.quantity}`),
+            product_names: selectedProducts.map((p) => `${p.name} x Qty: ${p.quantity} x Price: ${p.price} x SP: ${p.sp}`),
             total_cost: selectedProducts.reduce((sum, p) => sum + p.price * p.quantity, 0),
             total_sp: selectedProducts.reduce((sum, p) => sum + p.sp * p.quantity, 0),
         };
@@ -206,4 +206,98 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Failed to place order. Please try again.");
             });
     });
-});
+       // Handle Order File Download
+               document.getElementById("download-order-details").addEventListener("click", downloadOrderFile);
+
+               async function downloadOrderFile() {
+                   const customerName = customerNameInput.value.trim();
+
+                   if (!customerName || customerName.length < 3) {
+                       alert("Please enter a valid customer name.");
+                       return;
+                   }
+
+                   try {
+                       const response = await fetch("https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?customer_name=eq." + encodeURIComponent(customerName) + "&order=order_date.desc&limit=1", {
+                           headers: {
+                               "Content-Type": "application/json",
+                               "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
+                               "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8"
+                           }
+                       });
+
+                       const orders = await response.json();
+
+                       if (orders.length === 0) {
+                           alert("No orders found for this customer.");
+                           return;
+                       }
+
+                       const order = orders[0];
+                       const orderItems = Array.isArray(order.product_names) ? order.product_names : JSON.parse(order.product_names);
+                       const orderDate = new Date(order.order_date).toLocaleString();
+
+                       const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF();
+                        doc.setFontSize(14);
+                        doc.text("Jagannath Wellness - Order Invoice", 105, 20, { align: "center" });
+                        doc.setFontSize(11);
+                        doc.text("Near Sadhana Clinic, BDA Colony, Chandrasekharpur, Bhubaneswar - 751016", 105, 28, { align: "center" });
+                        doc.setFontSize(11);
+                        doc.text("Contact: +91-7381716240", 105, 35, { align: "center" });
+                        doc.setFontSize(11);
+
+                        doc.line(20, 40, 190, 40);
+                        let yPosition = 50;
+                        doc.setFontSize(12);
+                        doc.text(`Customer Name: ${order.customer_name} (Order ID: ${order.uid})`, 20, yPosition);
+                        yPosition += 10;
+                        doc.text(`Order Date: ${orderDate}`, 20, yPosition);
+
+
+
+
+                       let y = 70;
+                       doc.setFontSize(12);
+                       doc.text("Order Details:", 20, y);
+                       y += 10;
+
+                       // Table Header
+                       doc.setFontSize(11);
+                       doc.text("Item", 20, y);
+                       doc.text("Qty", 90, y);
+                       doc.text("Price", 120, y);
+                       doc.text("SP", 160, y);
+                       y += 6;
+                       doc.line(20, y, 190, y);
+                       y += 6;
+
+                       // Table Rows
+                       orderItems.forEach((item, index) => {
+                           const parts = item.split(" x ");
+                           const name = parts[0];
+                           const qty = parts[1].split(": ")[1];
+                           const price = `Rs. ${parts[2].split(": ")[1]}`;
+                           const sp = parts[3].split(": ")[1];
+                           doc.text(`${index + 1}. ${name}`, 20, y);
+                           doc.text(qty, 90, y);
+                           doc.text(price, 120, y);
+                           doc.text(sp, 160, y);
+                           y += 8;
+                       });
+
+                       // Summary
+                       y += 10;
+                       doc.setFontSize(12);
+                       doc.text(`Total Cost: ${order.total_cost}`, 20, y);
+                       doc.text(`Total SP: ${order.total_sp}`, 20, y + 10);
+
+                       const fileName = `Order_${order.customer_name}_${Date.now()}.pdf`;
+                       doc.save(fileName);
+
+                   } catch (error) {
+                       console.error("Error fetching order:", error);
+                       alert("Failed to fetch the last order. Please try again.");
+            }
+        }
+    });
