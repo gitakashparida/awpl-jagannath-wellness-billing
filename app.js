@@ -234,7 +234,8 @@ document.addEventListener("DOMContentLoaded", () => {
                        }
 
                        const order = orders[0];
-                       const orderItems = Array.isArray(order.product_names) ? order.product_names : JSON.parse(order.product_names);
+
+                       const orderItems = order.product_names.split(", ");
                        const orderDate = new Date(order.order_date).toLocaleString();
 
                        const { jsPDF } = window.jspdf;
