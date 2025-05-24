@@ -93,8 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let totalCost = 0;
         let totalSp = 0;
 
-        let currentIndex = 0;
-        selectedProducts.forEach((product) => {
+        selectedProducts.forEach((product, index) => {
             const itemCost = product.price * product.quantity;
             const itemSp = product.sp * product.quantity;
             totalCost += itemCost;
@@ -112,27 +111,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const removeBtn = document.createElement("button");
             removeBtn.textContent = "Remove from Cart";
-            removeBtn.classList.add("remove-btn");
-            removeBtn.setAttribute("data-index", currentIndex);
+            removeBtn.style.fontSize = "12px";
+            removeBtn.style.padding = "2px 6px";
+            removeBtn.style.marginLeft = "10px";
+            removeBtn.addEventListener("click", () => {
+                selectedProducts.splice(index, 1);
+                updateOrderSummary();
+            });
 
             item.appendChild(infoSpan);
             item.appendChild(removeBtn);
             orderSummary.appendChild(item);
-            currentIndex++;
         });
 
         totalCostElement.textContent = `Total Cost: Rs. ${totalCost}`;
         totalSpElement.textContent = `Total SP: ${totalSp}`;
-        // Add event listeners for remove buttons
-        orderSummary.addEventListener("click", (e) => {
-            if (e.target.classList.contains("remove-btn")) {
-                // Get the parent div and find its index in the orderSummary
-                const parent = e.target.parentElement;
-                const index = Array.from(orderSummary.children).indexOf(parent);
-                selectedProducts.splice(index, 1);
-                updateOrderSummary();
-            }
-        });
     }
 
     // Handle Add button click
