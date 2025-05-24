@@ -100,12 +100,22 @@ document.addEventListener("DOMContentLoaded", () => {
             totalSp += itemSp;
 
             const item = document.createElement("div");
-            item.textContent = `${product.name} (x${product.quantity}) - Rs. ${itemCost} (SP: ${itemSp})`;
+            item.innerHTML = `${product.name} (x${product.quantity}) - Rs. ${itemCost} (SP: ${itemSp}) <button class="remove-btn">Remove</button>`;
             orderSummary.appendChild(item);
         });
 
         totalCostElement.textContent = `Total Cost: Rs. ${totalCost}`;
         totalSpElement.textContent = `Total SP: ${totalSp}`;
+        // Add event listeners for remove buttons
+                document.querySelectorAll(".remove-btn").forEach(btn => {
+                    btn.addEventListener("click", (e) => {
+                        // Get the parent div and find its index in the orderSummary
+                        const parent = e.target.parentElement;
+                        const index = Array.from(orderSummary.children).indexOf(parent);
+                        selectedProducts.splice(index, 1);
+                        updateOrderSummary();
+                    });
+                });
     }
 
     // Handle Add button click
@@ -263,15 +273,18 @@ document.addEventListener("DOMContentLoaded", () => {
                        const { jsPDF } = window.jspdf;
                         const doc = new jsPDF();
                         doc.setFontSize(9);
-                                    doc.text("Jagannath Wellness - Order Invoice", 105, 20, { align: "center" });
-                                    doc.text("Near Sadhana Clinic, BDA Colony, Chandrasekharpur, Bhubaneswar - 751016", 105, 28, { align: "center" });
+                        doc.setFont("helvetica", "bold");
+                        doc.text("JAGANNATH WELLNESS", 105, 20, { align: "center" });
+                        doc.setFont("helvetica", "normal");
+                                    doc.text("BDA Colony, Chandrasekharpur, Khordha, Bhubaneswar - 751016", 105, 28, { align: "center" });
                                     doc.text("Contact: +91-7381716240", 105, 35, { align: "center" });
                                     doc.line(20, 40, 190, 40);
 
 
                         doc.line(20, 40, 190, 40);
                         let y = 50;
-                                    doc.text(`Customer Name: ${order.customer_name} (Order ID: ${order.uid})`, 20, y);
+                                    doc.text(`Customer Name: ${order.customer_name}`, 20, y);
+                                    doc.text(`Bill Number: ${order.uid}`, 160, y);
                                     y += 10;
                                     doc.text(`Order Date: ${orderDate}`, 20, y);
                                     y += 10;

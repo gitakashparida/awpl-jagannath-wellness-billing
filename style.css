@@ -55,6 +55,22 @@ h2 {
     overflow-y: auto;
 }
 
+.remove-btn {
+  margin-left: 10px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.remove-btn:hover {
+  background-color: #d9363e;
+}
+
+
 .total-cost,
 .total-sp {
     font-weight: bold;
