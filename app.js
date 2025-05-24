@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const getOrdersButton = document.getElementById("get-orders");
     const orderHistoryElement = document.getElementById("order-history");
     const customerNameSearchInput = document.getElementById("customer-name-search");
+    const orderNumberInput = document.getElementById("order-number");
 
     let products = [];
     let selectedProducts = [];
@@ -99,11 +100,11 @@ document.addEventListener("DOMContentLoaded", () => {
             totalSp += itemSp;
 
             const item = document.createElement("div");
-            item.textContent = `${product.name} (x${product.quantity}) - ₹${itemCost} (SP: ${itemSp})`;
+            item.textContent = `${product.name} (x${product.quantity}) - Rs. ${itemCost} (SP: ${itemSp})`;
             orderSummary.appendChild(item);
         });
 
-        totalCostElement.textContent = `Total Cost: ₹${totalCost}`;
+        totalCostElement.textContent = `Total Cost: Rs. ${totalCost}`;
         totalSpElement.textContent = `Total SP: ${totalSp}`;
     }
 
@@ -128,8 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Fetch last 10 orders logic
         getOrdersButton.addEventListener("click", () => {
             const customerName = customerNameSearchInput.value.trim();
-            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=10";
-            console.log("customerName", customerName);
+            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=20";
+
             if (customerName) {
                 // Ensure the value is URL encoded correctly
                 url += `&customer_name=eq.${encodeURIComponent(customerName)}`;
@@ -153,10 +154,32 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (orders.length === 0) {
                         orderHistoryElement.textContent = "No orders found.";
                     } else {
-                        orders.forEach((order) => {
-                            const orderItem = document.createElement("div");
-                            orderItem.textContent = `Customer: ${order.customer_name}, Products: ${order.product_names}, Total Cost: ₹${order.total_cost}, Total SP: ${order.total_sp}, Order Date: ${new Date(order.order_date).toLocaleString()}`;
-                            orderHistoryElement.appendChild(orderItem);
+                        orders.forEach((order, index) => {
+                                            const wrapper = document.createElement("div");
+                                            wrapper.className = "order-item";
+
+                                            const header = document.createElement("h4");
+                                            header.textContent = `#${order.uid} - ${order.customer_name} - Rs. ${order.total_cost} (SP: ${order.total_sp})`;
+
+                                            const meta = document.createElement("p");
+                                            meta.style.fontSize = "12px";
+                                            meta.style.margin = "4px 0 6px";
+                                            meta.textContent = `🕒 ${new Date(order.order_date).toLocaleString()}`;
+
+                                            const items = document.createElement("p");
+                                            items.style.whiteSpace = "pre-wrap";
+                                            items.textContent = order.product_names;
+
+                                            wrapper.appendChild(header);
+                                            wrapper.appendChild(meta);
+                                            wrapper.appendChild(items);
+                                            wrapper.style.padding = "10px";
+                                            wrapper.style.border = "1px solid #ccc";
+                                            wrapper.style.marginBottom = "10px";
+                                            wrapper.style.borderRadius = "5px";
+                                            wrapper.style.background = "#f9f9f9";
+
+                                            orderHistoryElement.appendChild(wrapper);
                         });
                     }
                 })
@@ -210,15 +233,15 @@ document.addEventListener("DOMContentLoaded", () => {
                document.getElementById("download-order-details").addEventListener("click", downloadOrderFile);
 
                async function downloadOrderFile() {
-                   const customerName = customerNameInput.value.trim();
+                   const orderId = orderNumberInput.value.trim();
 
-                   if (!customerName || customerName.length < 3) {
-                       alert("Please enter a valid customer name.");
-                       return;
+                   if (!orderId || isNaN(orderId)) {
+                               alert("Please enter a valid order number.");
+                               return;
                    }
 
                    try {
-                       const response = await fetch("https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?customer_name=eq." + encodeURIComponent(customerName) + "&order=order_date.desc&limit=1", {
+                       const response = await fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${orderId}`,{
                            headers: {
                                "Content-Type": "application/json",
                                "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
@@ -234,67 +257,63 @@ document.addEventListener("DOMContentLoaded", () => {
                        }
 
                        const order = orders[0];
-
                        const orderItems = order.product_names.split(", ");
                        const orderDate = new Date(order.order_date).toLocaleString();
 
                        const { jsPDF } = window.jspdf;
                         const doc = new jsPDF();
-                        doc.setFontSize(14);
-                        doc.text("Jagannath Wellness - Order Invoice", 105, 20, { align: "center" });
-                        doc.setFontSize(11);
-                        doc.text("Near Sadhana Clinic, BDA Colony, Chandrasekharpur, Bhubaneswar - 751016", 105, 28, { align: "center" });
-                        doc.setFontSize(11);
-                        doc.text("Contact: +91-7381716240", 105, 35, { align: "center" });
-                        doc.setFontSize(11);
+                        doc.setFontSize(9);
+                                    doc.text("Jagannath Wellness - Order Invoice", 105, 20, { align: "center" });
+                                    doc.text("Near Sadhana Clinic, BDA Colony, Chandrasekharpur, Bhubaneswar - 751016", 105, 28, { align: "center" });
+                                    doc.text("Contact: +91-7381716240", 105, 35, { align: "center" });
+                                    doc.line(20, 40, 190, 40);
+
 
                         doc.line(20, 40, 190, 40);
-                        let yPosition = 50;
-                        doc.setFontSize(12);
-                        doc.text(`Customer Name: ${order.customer_name} (Order ID: ${order.uid})`, 20, yPosition);
-                        yPosition += 10;
-                        doc.text(`Order Date: ${orderDate}`, 20, yPosition);
+                        let y = 50;
+                                    doc.text(`Customer Name: ${order.customer_name} (Order ID: ${order.uid})`, 20, y);
+                                    y += 10;
+                                    doc.text(`Order Date: ${orderDate}`, 20, y);
+                                    y += 10;
+                                    doc.text("Order Details:", 20, y);
+                                    y += 10;
 
+                                    doc.text("Item", 20, y);
+                                    doc.text("Qty", 70, y);
+                                    doc.text("Price", 100, y);
+                                    doc.text("SP", 130, y);
+                                    doc.text("Prod. Cost", 160, y);
+                                    y += 6;
+                                    doc.line(20, y, 190, y);
+                                    y += 6;
 
+                                    orderItems.forEach((item, index) => {
+                                        if (y > 270) {
+                                            doc.addPage();
+                                            y = 20;
+                                        }
 
+                                        const parts = item.split(" x ");
+                                        const name = parts[0];
+                                        const qty = parseInt(parts[1].split(": ")[1]);
+                                        const priceVal = parseFloat(parts[2].split(": ")[1]);
+                                        const sp = parts[3].split(": ")[1];
+                                        const productCost = qty * priceVal;
 
-                       let y = 70;
-                       doc.setFontSize(12);
-                       doc.text("Order Details:", 20, y);
-                       y += 10;
+                                        doc.text(`${index + 1}. ${name}`, 20, y);
+                                        doc.text(`${qty}`, 70, y);
+                                        doc.text(`Rs. ${priceVal.toFixed(2)}`, 100, y);
+                                        doc.text(sp, 130, y);
+                                        doc.text(`Rs. ${productCost.toFixed(2)}`, 160, y);
+                                        y += 8;
+                                    });
 
-                       // Table Header
-                       doc.setFontSize(11);
-                       doc.text("Item", 20, y);
-                       doc.text("Qty", 90, y);
-                       doc.text("Price", 120, y);
-                       doc.text("SP", 160, y);
-                       y += 6;
-                       doc.line(20, y, 190, y);
-                       y += 6;
+                                    y += 10;
+                                    doc.text(`Total Cost: Rs. ${order.total_cost}`, 20, y);
+                                    doc.text(`Total SP: ${order.total_sp}`, 20, y + 10);
 
-                       // Table Rows
-                       orderItems.forEach((item, index) => {
-                           const parts = item.split(" x ");
-                           const name = parts[0];
-                           const qty = parts[1].split(": ")[1];
-                           const price = `Rs. ${parts[2].split(": ")[1]}`;
-                           const sp = parts[3].split(": ")[1];
-                           doc.text(`${index + 1}. ${name}`, 20, y);
-                           doc.text(qty, 90, y);
-                           doc.text(price, 120, y);
-                           doc.text(sp, 160, y);
-                           y += 8;
-                       });
-
-                       // Summary
-                       y += 10;
-                       doc.setFontSize(12);
-                       doc.text(`Total Cost: ${order.total_cost}`, 20, y);
-                       doc.text(`Total SP: ${order.total_sp}`, 20, y + 10);
-
-                       const fileName = `Order_${order.customer_name}_${Date.now()}.pdf`;
-                       doc.save(fileName);
+                                    const fileName = `Order_${order.customer_name}_${order.uid}.pdf`;
+                                    doc.save(fileName);
 
                    } catch (error) {
                        console.error("Error fetching order:", error);
