@@ -93,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let totalCost = 0;
         let totalSp = 0;
 
+        let currentIndex = 0;
         selectedProducts.forEach((product) => {
             const itemCost = product.price * product.quantity;
             const itemSp = product.sp * product.quantity;
@@ -100,22 +101,38 @@ document.addEventListener("DOMContentLoaded", () => {
             totalSp += itemSp;
 
             const item = document.createElement("div");
-            item.innerHTML = `${product.name} (x${product.quantity}) - Rs. ${itemCost} (SP: ${itemSp}) <button class="remove-btn">Remove</button>`;
+            item.style.display = "flex";
+            item.style.justifyContent = "space-between";
+            item.style.alignItems = "center";
+            item.style.marginBottom = "4px";
+            item.style.fontSize = "14px";
+
+            const infoSpan = document.createElement("span");
+            infoSpan.textContent = `${product.name} (x${product.quantity}) - Rs. ${itemCost} (SP: ${itemSp})`;
+
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = "Remove from Cart";
+            removeBtn.classList.add("remove-btn");
+            removeBtn.setAttribute("data-index", currentIndex);
+
+            item.appendChild(infoSpan);
+            item.appendChild();
             orderSummary.appendChild(item);
+            currentIndex++;
         });
 
         totalCostElement.textContent = `Total Cost: Rs. ${totalCost}`;
         totalSpElement.textContent = `Total SP: ${totalSp}`;
         // Add event listeners for remove buttons
-                document.querySelectorAll(".remove-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => {
-                        // Get the parent div and find its index in the orderSummary
-                        const parent = e.target.parentElement;
-                        const index = Array.from(orderSummary.children).indexOf(parent);
-                        selectedProducts.splice(index, 1);
-                        updateOrderSummary();
-                    });
-                });
+        orderSummary.addEventListener("click", (e) => {
+            if (e.target.classList.contains("remove-btn")) {
+                // Get the parent div and find its index in the orderSummary
+                const parent = e.target.parentElement;
+                const index = Array.from(orderSummary.children).indexOf(parent);
+                selectedProducts.splice(index, 1);
+                updateOrderSummary();
+            }
+        });
     }
 
     // Handle Add button click
@@ -268,7 +285,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
                        const order = orders[0];
                        const orderItems = order.product_names.split(", ");
-                       const orderDate = new Date(order.order_date).toLocaleString();
+                       const orderDate = new Date(order.order_date);
+                       // Convert to IST by adding 5.5 hours (330 minutes)
+                       orderDate.setMinutes(orderDate.getMinutes() + 330);
+                       // Format the date
+                       const formattedDate = orderDate.toLocaleString('en-IN', {
+                           year: 'numeric',
+                           month: 'long',
+                           day: 'numeric',
+                           hour: '2-digit',
+                           minute: '2-digit',
+                           second: '2-digit',
+                           hour12: true
+                       });
 
                        const { jsPDF } = window.jspdf;
                         const doc = new jsPDF();
@@ -295,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     doc.text("Qty", 70, y);
                                     doc.text("Price", 100, y);
                                     doc.text("SP", 130, y);
-                                    doc.text("Prod. Cost", 160, y);
+                                    doc.text("Product Cost", 160, y);
                                     y += 6;
                                     doc.line(20, y, 190, y);
                                     y += 6;
