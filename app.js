@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
             removeBtn.setAttribute("data-index", currentIndex);
 
             item.appendChild(infoSpan);
-            item.appendChild();
+            item.appendChild(removeBtn);
             orderSummary.appendChild(item);
             currentIndex++;
         });
