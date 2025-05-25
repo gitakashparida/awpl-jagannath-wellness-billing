@@ -9,9 +9,9 @@
 </head>
 <body>
 <h1>Jagannath Wellness - AWPL Billing</h1>
-<input type="text" id="customer-name" placeholder="Enter customer name..." autocomplete="off" />
-<input type="text" id="product-search" placeholder="Search products..." autocomplete="off" />
-<input type="number" id="product-quantity" placeholder="Enter quantity..."/>
+<input type="text" id="customer-name" placeholder="Enter customer name" autocomplete="off" />
+<input type="text" id="product-search" placeholder="Search products" autocomplete="off" />
+<input type="number" id="product-quantity" placeholder="Enter quantity"/>
 <h2>     </h2>
 <button id="add-product">Add to cart</button>
 <div id="dropdown" class="dropdown"></div>
@@ -23,20 +23,41 @@
 <div id="total-sp" class="total-sp">Total SP: 0</div>
 <!-- Place Order Button -->
 <button id="place-order">Place Order</button>
+
+<div style="margin-top: 20px;">
+  <label for="approve-order-number">Order Number to Approve/Delete:</label>
+  <input type="text" id="approve-order-number" placeholder="Enter order number" />
+  <p style="font-size: 12px; color: #555;">Note: Delete the order ONLY if SP has been paid to the customer.</p>
+  <h2>  </h2>
+  <button id="approve-order-button">Approve Order</button>
+  <h2>  </h2>
+  <button id="delete-order-button">Delete Order</button>
+
+</div>
+
 <h2>     </h2>
-<input type="number" id="order-number" placeholder="Enter order number..." autocomplete="off" />
+<input type="number" id="order-number" placeholder="Enter order number" autocomplete="off" />
 <h2>     </h2>
 <button id="download-order-details">Download Order Details</button>
 
+<!-- Add New Product Section -->
+<h2>Add New Product</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+  <input type="text" id="new-product-name" placeholder="Product Name" />
+  <input type="number" id="new-product-price" placeholder="Price" />
+  <input type="number" id="new-product-mrp" placeholder="MRP" />
+  <input type="number" id="new-product-sp" placeholder="SP" />
+</div>
+<button id="add-new-product">Add Product</button>
 
 
 <!-- Get Last 10 Orders Section -->
 <h2>Order History</h2>
-<input type="text" id="customer-name-search" placeholder="Enter customer name..." autocomplete="off" />
+<input type="text" id="customer-name-search" placeholder="Enter customer name" autocomplete="off" />
 <h2>     </h2>
 <button id="get-orders">Get Last 20 Orders</button>
 
-<!-- Display Last 10 Orders -->
+<!-- Display Last 20 approved Orders -->
 <div id="order-history"></div>
 
 <script src="app.js"></script>
