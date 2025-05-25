@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
         getOrdersButton.addEventListener("click", () => {
             const customerName = customerNameSearchInput.value.trim();
 //            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=20";
-            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=20&isApproved=eq.true";
+            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=20";
 
             if (customerName) {
                 // Ensure the value is URL encoded correctly
