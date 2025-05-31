@@ -16,6 +16,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const priceInput = document.getElementById("new-product-price");
     const mrpInput = document.getElementById("new-product-mrp");
     const spInput = document.getElementById("new-product-sp");
+    const deleteProductInput = document.getElementById("delete-product-input");
+    const deleteProductDropdown = document.getElementById("delete-product-dropdown");
+
 
     let products = [];
     let selectedProducts = [];
@@ -115,9 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const removeBtn = document.createElement("button");
             removeBtn.textContent = "Remove from Cart";
-            removeBtn.style.fontSize = "12px";
+            removeBtn.style.fontSize = "15px";
             removeBtn.style.padding = "2px 6px";
-            removeBtn.style.marginLeft = "10px";
+            removeBtn.style.marginLeft = "300px";
             removeBtn.addEventListener("click", () => {
                 selectedProducts.splice(index, 1);
                 updateOrderSummary();
@@ -150,11 +153,11 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Product not found. Please select a valid product from the list.");
         }
     });
-    // Fetch last 20 orders logic
+    // Fetch last 50 orders logic
         getOrdersButton.addEventListener("click", () => {
             const customerName = customerNameSearchInput.value.trim();
 //            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=20";
-            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=20";
+            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=50";
 
             if (customerName) {
                 // Ensure the value is URL encoded correctly
@@ -360,6 +363,65 @@ addNewProductButton.addEventListener("click", () => {
             alert("Error adding product. Please try again.");
         });
 });
+
+deleteProductInput.addEventListener("input", () => {
+    const query = deleteProductInput.value.toLowerCase();
+    deleteProductDropdown.innerHTML = "";
+
+    if (query) {
+        const filtered = products.filter((product) =>
+            product.name.toLowerCase().includes(query)
+        );
+
+        filtered.forEach((product) => {
+            const item = document.createElement("div");
+            item.textContent = product.name;
+            item.classList.add("dropdown-item");
+            item.addEventListener("click", () => {
+                deleteProductInput.value = product.name;
+                deleteProductDropdown.style.display = "none";
+
+                if (confirm(`Are you sure you want to delete '${product.name}'?`)) {
+                    fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/products?uid=eq.${product.uid}`, {
+                        method: "DELETE",
+                        headers: {
+                            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
+                                        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
+                                        "Content-Type": "application/json",
+                        },
+                    })
+                    .then((response) => {
+                        if (response.ok) {
+                            alert("Product deleted successfully.");
+                            products = products.filter(p => p.uid !== product.uid);
+                        } else {
+                            alert("Failed to delete product.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error deleting product:", error);
+                        alert("An error occurred while deleting the product.");
+                    });
+                }
+            });
+            deleteProductDropdown.appendChild(item);
+        });
+
+        deleteProductDropdown.style.display = "block";
+    } else {
+        deleteProductDropdown.style.display = "none";
+    }
+});
+
+document.addEventListener("click", (event) => {
+    if (!dropdown.contains(event.target) && event.target !== searchInput) {
+        dropdown.style.display = "none";
+    }
+    if (!deleteProductDropdown.contains(event.target) && event.target !== deleteProductInput) {
+        deleteProductDropdown.style.display = "none";
+    }
+});
+
 
     // Place order logic
     placeOrderButton.addEventListener("click", () => {
