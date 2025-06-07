@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateOrderSummary();
         searchInput.value = "";
-        quantityInput.value = "1";
+        quantityInput.value = "0";
         dropdown.style.display = "none";
     }
 
@@ -138,12 +138,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Handle Add button click
     addProductButton.addEventListener("click", () => {
         const query = searchInput.value.toLowerCase().trim();
-        const quantity = parseInt(quantityInput.value) || 1;
+        const quantity = parseInt(quantityInput.value);
 
-        if (!query || quantity <= 0) {
+        if (!query || isNaN(quantity) || quantity <= 0) {
             alert("Please enter a valid product name and quantity.");
             return;
         }
+
 
         const matchingProduct = products.find(p => p.name.toLowerCase() === query);
 
