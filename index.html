@@ -24,8 +24,22 @@
 <!-- Place Order Button -->
 <button id="place-order">Place Order</button>
 
+<h2>Edit Existing Order</h2>
+<input type="number" id="edit-order-number" placeholder="Enter order number" />
+<h2>     </h2>
+<button id="fetch-order-to-edit">Edit Order</button>
+
+<div id="edit-order-section" style="margin-top: 20px; display: none;">
+  <h3>Editing Order Summary</h3>
+  <div id="edit-order-summary"></div>
+  <div id="edit-total-cost"></div>
+  <div id="edit-total-sp"></div>
+  <button id="save-edited-order">Save Order</button>
+</div>
+
+
 <div style="margin-top: 20px;">
-  <label for="approve-order-number">Order Number to Approve/Delete:</label>
+  <label for="approve-order-number">Order Number to Delete:</label>
   <input type="text" id="approve-order-number" placeholder="Enter order number" />
   <p style="font-size: 12px; color: #555;">Note: Delete the order ONLY if SP has been paid to the customer.</p>
   <h2>  </h2>

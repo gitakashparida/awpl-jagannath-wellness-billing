@@ -18,6 +18,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const spInput = document.getElementById("new-product-sp");
     const deleteProductInput = document.getElementById("delete-product-input");
     const deleteProductDropdown = document.getElementById("delete-product-dropdown");
+    const editOrderNumberInput = document.getElementById("edit-order-number");
+    const fetchOrderToEditBtn = document.getElementById("fetch-order-to-edit");
+    const editOrderSection = document.getElementById("edit-order-section");
+    const editOrderSummary = document.getElementById("edit-order-summary");
+    const editTotalCostElement = document.getElementById("edit-total-cost");
+    const editTotalSpElement = document.getElementById("edit-total-sp");
+    const saveEditedOrderBtn = document.getElementById("save-edited-order");
+
 
 
     let products = [];
@@ -135,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
         totalSpElement.textContent = `Total SP: ${totalSp}`;
     }
 
-    // Handle Add button click
+    // Handle Add button to Cart click
     addProductButton.addEventListener("click", () => {
         const query = searchInput.value.toLowerCase().trim();
         const quantity = parseInt(quantityInput.value);
@@ -421,6 +429,202 @@ document.addEventListener("click", (event) => {
         deleteProductDropdown.style.display = "none";
     }
 });
+
+fetchOrderToEditBtn.addEventListener("click", async () => {
+    const orderId = editOrderNumberInput.value.trim();
+
+    if (!orderId || isNaN(orderId)) {
+        alert("Please enter a valid order number.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${orderId}`, {
+            headers: {
+                apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
+                Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
+                "Content-Type": "application/json",
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.length === 0) {
+            alert("No such order found.");
+            return;
+        }
+
+        const order = data[0];
+        displayEditableOrder(order);
+    } catch (err) {
+        console.error("Failed to fetch order:", err);
+        alert("Error fetching order. Try again.");
+    }
+});
+
+function displayEditableOrder(order) {
+    editOrderSection.style.display = "block";
+    editOrderSummary.innerHTML = "";
+
+    // Parse fresh copy of items every time to avoid duplicating
+    const items = order.product_names.split(", ").map(item => {
+        const [namePart, qtyPart, pricePart, spPart] = item.split(" x ");
+        return {
+            name: namePart.trim(),
+            quantity: parseInt(qtyPart.split(": ")[1]),
+            price: parseFloat(pricePart.split(": ")[1]),
+            sp: parseFloat(spPart.split(": ")[1])
+        };
+    });
+
+    function renderUI() {
+        editOrderSummary.innerHTML = "";
+        let totalCost = 0;
+        let totalSp = 0;
+
+        items.forEach((item, index) => {
+            const row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.justifyContent = "space-between";
+            row.style.marginBottom = "6px";
+
+            const nameSpan = document.createElement("span");
+            nameSpan.textContent = item.name;
+
+            const qtyInput = document.createElement("input");
+            qtyInput.type = "number";
+            qtyInput.min = "0";
+            qtyInput.value = item.quantity;
+            qtyInput.style.width = "60px";
+            qtyInput.classList.add("edit-qty");
+
+            qtyInput.setAttribute("data-price", item.price);
+            qtyInput.setAttribute("data-sp", item.sp);
+
+            qtyInput.addEventListener("input", () => {
+                const newQty = parseInt(qtyInput.value);
+                if (!isNaN(newQty)) {
+                    item.quantity = newQty;
+                    updateTotals();
+                }
+            });
+
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = "❌";
+            removeBtn.style.fontSize = "10px";
+            removeBtn.style.marginLeft = "10px";
+            removeBtn.addEventListener("click", () => {
+                items.splice(index, 1);
+                renderUI();  // re-render after removing
+            });
+
+            const itemGroup = document.createElement("div");
+            itemGroup.appendChild(nameSpan);
+            itemGroup.appendChild(qtyInput);
+            itemGroup.appendChild(removeBtn);
+
+            row.appendChild(itemGroup);
+            editOrderSummary.appendChild(row);
+        });
+
+        updateTotals();
+    }
+
+    function updateTotals() {
+        let totalCost = 0;
+        let totalSp = 0;
+
+        items.forEach(item => {
+            totalCost += item.price * item.quantity;
+            totalSp += item.sp * item.quantity;
+        });
+
+        editTotalCostElement.textContent = `Total Cost: ₹${totalCost.toFixed(2)}`;
+        editTotalSpElement.textContent = `Total SP: ${totalSp.toFixed(2)}`;
+    }
+
+    // Prevent duplicate event bindings
+    saveEditedOrderBtn.replaceWith(saveEditedOrderBtn.cloneNode(true));
+    const newSaveBtn = document.getElementById("save-edited-order");
+
+    newSaveBtn.onclick = () => {
+        saveEditedOrder(order.uid, items);
+    };
+
+    renderUI();
+
+    setTimeout(() => {
+        document.querySelector(".edit-qty")?.focus();
+    }, 100);
+}
+
+
+
+function saveEditedOrder(orderUid) {
+    const rows = editOrderSummary.querySelectorAll("div[style*='display: flex']");
+    const updatedItems = [];
+
+    rows.forEach((row) => {
+        const itemGroup = row.querySelector("div");
+        if (!itemGroup) return;
+        
+        const name = itemGroup.querySelector("span")?.textContent.trim();
+        const qtyInput = itemGroup.querySelector("input.edit-qty");
+        if (!name || !qtyInput) return;
+        
+        const quantity = parseInt(qtyInput.value);
+        const price = parseFloat(qtyInput.getAttribute("data-price"));
+        const sp = parseFloat(qtyInput.getAttribute("data-sp"));
+
+        if (isNaN(quantity) || isNaN(price) || isNaN(sp)) return;
+
+        updatedItems.push({ name, quantity, price, sp });
+    });
+
+    if (updatedItems.length === 0) {
+        alert("Cannot save an empty order.");
+        return;
+    }
+
+    const updatedProductNames = updatedItems.map(item =>
+        `${item.name} x Qty: ${item.quantity} x Price: ${item.price} x SP: ${item.sp}`
+    ).join(", ");
+
+    const updatedTotalCost = updatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const updatedTotalSp = updatedItems.reduce((sum, item) => sum + item.sp * item.quantity, 0);
+
+    const updatedOrder = {
+        product_names: updatedProductNames,
+        total_cost: updatedTotalCost,
+        total_sp: updatedTotalSp
+    };
+
+    console.log("Before patch request",updatedOrder);
+
+    fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${orderUid}`, {
+        method: "PATCH",
+        headers: {
+            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+        },
+        body: JSON.stringify(updatedOrder)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Update failed. Status: ${response.status}`);
+        }
+        alert("Order updated successfully!");
+        editOrderSection.style.display = "none";
+    })
+    .catch(error => {
+        console.error("Error saving edited order:", error);
+        alert("Failed to update the order. Please try again.");
+    });
+}
+
+
 
 
     // Place order logic
