@@ -153,11 +153,10 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Product not found. Please select a valid product from the list.");
         }
     });
-    // Fetch last 50 orders logic
+    // Fetch last 100 orders logic
         getOrdersButton.addEventListener("click", () => {
             const customerName = customerNameSearchInput.value.trim();
-//            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=20";
-            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=50";
+            let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=100";
 
             if (customerName) {
                 // Ensure the value is URL encoded correctly
@@ -323,7 +322,7 @@ addNewProductButton.addEventListener("click", () => {
         name: nameInput.value.trim(),
         price: parseFloat(priceInput.value),
         mrp: parseFloat(mrpInput.value),
-        sp: parseInt(spInput.value)
+        sp: parseFloat(spInput.value)
     };
     console.log("Adding product with:", payload);
 
@@ -340,7 +339,7 @@ addNewProductButton.addEventListener("click", () => {
             name: nameInput.value.trim(),
             price: parseFloat(priceInput.value),
             mrp: parseFloat(mrpInput.value),
-            sp: parseInt(spInput.value)
+            sp: parseFloat(spInput.value)
         })
     })
         .then((res) => {
