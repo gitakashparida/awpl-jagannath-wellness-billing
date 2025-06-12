@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (customerName) {
                 // Ensure the value is URL encoded correctly
-                url += `&customer_name=eq.${encodeURIComponent(customerName)}`;
+                url += `&customer_name=eq.${encodeURIComponent(customerName)}`;f
             }
 
             fetch(url, {
@@ -190,33 +190,71 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (orders.length === 0) {
                         orderHistoryElement.textContent = "No orders found.";
                     } else {
-                        orders.forEach((order, index) => {
-                                            const wrapper = document.createElement("div");
-                                            wrapper.className = "order-item";
+                        orders.forEach((order) => {
+                            const wrapper = document.createElement("div");
+                            wrapper.className = "order-item";
 
-                                            const header = document.createElement("h4");
-                                            header.textContent = `#${order.uid} - ${order.customer_name} - Rs. ${order.total_cost} (SP: ${order.total_sp})`;
+                            const header = document.createElement("h4");
+                            header.textContent = `#${order.uid} - ${order.customer_name} - ₹${order.total_cost} (SP: ${order.total_sp})`;
 
-                                            const meta = document.createElement("p");
-                                            meta.style.fontSize = "12px";
-                                            meta.style.margin = "4px 0 6px";
-                                            meta.textContent = `🕒 ${new Date(order.order_date).toLocaleString()}`;
+                            const meta = document.createElement("p");
+                            meta.style.fontSize = "12px";
+                            meta.style.margin = "4px 0 6px";
+                            meta.textContent = `🕒 ${new Date(order.order_date).toLocaleString()}`;
 
-                                            const items = document.createElement("p");
-                                            items.style.whiteSpace = "pre-wrap";
-                                            items.textContent = order.product_names;
+                            const items = document.createElement("p");
+                            items.style.whiteSpace = "pre-wrap";
+                            items.textContent = order.product_names;
 
-                                            wrapper.appendChild(header);
-                                            wrapper.appendChild(meta);
-                                            wrapper.appendChild(items);
-                                            wrapper.style.padding = "10px";
-                                            wrapper.style.border = "1px solid #ccc";
-                                            wrapper.style.marginBottom = "10px";
-                                            wrapper.style.borderRadius = "5px";
-                                            wrapper.style.background = "#f9f9f9";
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.textContent = "🗑️ Delete Order";
+                            deleteBtn.style.fontSize = "12px";
+                            deleteBtn.style.padding = "4px 8px";
+                            deleteBtn.style.marginTop = "6px";
+                            deleteBtn.style.backgroundColor = "#f44336";
+                            deleteBtn.style.color = "white";
+                            deleteBtn.style.border = "none";
+                            deleteBtn.style.borderRadius = "4px";
+                            deleteBtn.style.cursor = "pointer";
 
-                                            orderHistoryElement.appendChild(wrapper);
+                            deleteBtn.addEventListener("click", () => {
+                                if (confirm(`Are you sure you want to delete order #${order.uid}?`)) {
+                                    fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${order.uid}`, {
+                                        method: "DELETE",
+                                        headers: {
+                                            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8", // Replace with your actual API key
+                                                                Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`, // Replace with your actual Bearer token
+                                                                "Content-Type": "application/json",
+                                        },
+                                    })
+                                        .then((response) => {
+                                            if (response.ok) {
+                                                alert("Order deleted successfully.");
+                                                wrapper.remove(); // remove from DOM
+                                            } else {
+                                                alert("Failed to delete order.");
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            console.error("Error deleting order:", error);
+                                            alert("An error occurred while deleting the order.");
+                                        });
+                                }
+                            });
+
+                            wrapper.appendChild(header);
+                            wrapper.appendChild(meta);
+                            wrapper.appendChild(items);
+                            wrapper.appendChild(deleteBtn);
+                            wrapper.style.padding = "10px";
+                            wrapper.style.border = "1px solid #ccc";
+                            wrapper.style.marginBottom = "10px";
+                            wrapper.style.borderRadius = "5px";
+                            wrapper.style.background = "#f9f9f9";
+
+                            orderHistoryElement.appendChild(wrapper);
                         });
+
                     }
                 })
                 .catch((error) => {
