@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (customerName) {
                 // Ensure the value is URL encoded correctly
-                url += `&customer_name=eq.${encodeURIComponent(customerName)}`;f
+                url += `&customer_name=eq.${encodeURIComponent(customerName)}`;
             }
 
             fetch(url, {
@@ -262,88 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     alert("Failed to load order history. Please try again later.");
                 });
         });
-
-// Approve/Disapprove Order
-const approveOrderInput = document.getElementById("approve-order-number");
-const approveOrderButton = document.getElementById("approve-order-button");
-
-approveOrderButton.addEventListener("click", () => {
-    const orderId = approveOrderInput.value.trim();
-
-    if (!orderId || isNaN(orderId)) {
-        alert("Please enter a valid order number.");
-        return;
-    }
-
-    // Confirm approval action
-    if (!confirm(`Are you sure you want to approve order #${orderId}?`)) {
-        return;
-    }
-
-    // Prepare the PATCH request to update the isApproved column
-    fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${orderId}`, {
-        method: "PATCH",
-        headers: {
-            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
-                            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
-                            "Content-Type": "application/json",
-            Prefer: "return=representation" // Return updated record
-        },
-        body: JSON.stringify({
-            isApproved: true
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Failed to approve order. Status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(updatedOrders => {
-        if (updatedOrders.length === 0) {
-            alert(`Order #${orderId} not found.`);
-        } else {
-            alert(`Order #${orderId} approved successfully!`);
-            approveOrderInput.value = "";
-        }
-    })
-    .catch(error => {
-        console.error("Error approving order:", error);
-        alert("Error approving order. Please try again.");
-    });
-});
-
-document.getElementById("delete-order-button").addEventListener("click", async () => {
-  const orderNumberInput = document.getElementById("approve-order-number").value.trim();
-
-  if (!orderNumberInput) {
-    alert("Please enter an order number to delete.");
-    return;
-  }
-
-  const orderId = orderNumberInput;
-
-  try {
-    const response = await fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${orderId}`, {
-      method: "DELETE",
-      headers: {
-        apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
-                                    Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
-                                    "Content-Type": "application/json"
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to delete the order. Status: ${response.status}`);
-    }
-
-    alert(`Order ${orderId} has been deleted.`);
-  } catch (error) {
-    console.error("Error deleting order:", error);
-    alert("Failed to delete order.");
-  }
-});
-
 
 // Add New Product to Database (Supabase)
 const addNewProductButton = document.getElementById("add-new-product");
