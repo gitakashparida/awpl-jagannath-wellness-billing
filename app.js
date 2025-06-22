@@ -440,6 +440,7 @@ function displayEditableOrder(order) {
         <div class="edit-order-controls" style="margin-bottom: 15px;">
             <input type="text" id="edit-product-search" placeholder="Search products to add" style="width: 200px; padding: 5px;">
             <input type="number" id="edit-product-quantity" value="1" min="1" style="width: 60px; padding: 5px; margin: 0 10px;">
+            <h2>     </h2>
             <button id="edit-add-product" style="padding: 5px 10px;">Add Product</button>
             <div id="edit-product-dropdown" class="dropdown" style="position: absolute; z-index: 1000;"></div>
         </div>
