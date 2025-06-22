@@ -29,12 +29,15 @@
 <h2>     </h2>
 <button id="fetch-order-to-edit">Edit Order</button>
 
-<div id="edit-order-section" style="margin-top: 20px; display: none;">
-  <h3>Editing Order Summary</h3>
-  <div id="edit-order-summary"></div>
-  <div id="edit-total-cost"></div>
-  <div id="edit-total-sp"></div>
-  <button id="save-edited-order">Save Order</button>
+<div id="edit-order-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none;">
+  <h3 style="margin-top: 0; color: #2c3e50; border-bottom: 1px solid #dee2e6; padding-bottom: 10px;">Editing Order #<span id="editing-order-number"></span></h3>
+  <div id="edit-order-summary" class="order-summary" style="margin-bottom: 15px;"></div>
+  <div id="edit-total-cost" class="total-cost" style="font-weight: bold; margin: 10px 0;"></div>
+  <div id="edit-total-sp" class="total-sp" style="font-weight: bold; margin-bottom: 15px;"></div>
+  <div style="display: flex; gap: 10px;">
+    <button id="save-edited-order" style="flex: 1; background-color: #28a745;">Save Changes</button>
+    <button id="cancel-edit" style="flex: 1; background-color: #dc3545;">Cancel</button>
+  </div>
 </div>
 
 

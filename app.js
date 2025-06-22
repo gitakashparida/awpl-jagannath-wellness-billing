@@ -420,7 +420,31 @@ fetchOrderToEditBtn.addEventListener("click", async () => {
 
 function displayEditableOrder(order) {
     editOrderSection.style.display = "block";
-    editOrderSummary.innerHTML = "";
+    
+    // Display the order number being edited
+    const orderNumberSpan = document.getElementById("editing-order-number");
+    if (orderNumberSpan) {
+        orderNumberSpan.textContent = order.uid;
+    }
+    
+    // Set up cancel button
+    const cancelButton = document.getElementById("cancel-edit");
+    if (cancelButton) {
+        cancelButton.onclick = () => {
+            editOrderSection.style.display = "none";
+            document.getElementById("edit-order-number").value = "";
+        };
+    }
+    
+    editOrderSummary.innerHTML = `
+        <div class="edit-order-controls" style="margin-bottom: 15px;">
+            <input type="text" id="edit-product-search" placeholder="Search products to add" style="width: 200px; padding: 5px;">
+            <input type="number" id="edit-product-quantity" value="1" min="1" style="width: 60px; padding: 5px; margin: 0 10px;">
+            <button id="edit-add-product" style="padding: 5px 10px;">Add Product</button>
+            <div id="edit-product-dropdown" class="dropdown" style="position: absolute; z-index: 1000;"></div>
+        </div>
+        <div id="edit-order-items"></div>
+    `;
 
     // Parse fresh copy of items every time to avoid duplicating
     const items = order.product_names.split(", ").map(item => {
@@ -432,9 +456,75 @@ function displayEditableOrder(order) {
             sp: parseFloat(spPart.split(": ")[1])
         };
     });
+    
+    // Initialize search functionality for edit order
+    const editSearchInput = document.getElementById("edit-product-search");
+    const editQuantityInput = document.getElementById("edit-product-quantity");
+    const editDropdown = document.getElementById("edit-product-dropdown");
+    const editAddButton = document.getElementById("edit-add-product");
+    
+    // Handle product search in edit mode
+    editSearchInput.addEventListener("input", () => {
+        const query = editSearchInput.value.toLowerCase();
+        editDropdown.innerHTML = "";
+        
+        if (query) {
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(query) && 
+                !items.some(item => item.name.toLowerCase() === p.name.toLowerCase())
+            );
+            
+            filtered.forEach(product => {
+                const item = document.createElement("div");
+                item.textContent = product.name;
+                item.classList.add("dropdown-item");
+                item.addEventListener("click", () => {
+                    editSearchInput.value = product.name;
+                    editDropdown.style.display = "none";
+                    editAddButton.onclick = () => addProductToEditOrder(product, parseInt(editQuantityInput.value) || 1);
+                });
+                editDropdown.appendChild(item);
+            });
+            
+            editDropdown.style.display = filtered.length ? "block" : "none";
+        } else {
+            editDropdown.style.display = "none";
+        }
+    });
+    
+    // Handle click outside dropdown
+    document.addEventListener("click", (e) => {
+        if (!editDropdown.contains(e.target) && e.target !== editSearchInput) {
+            editDropdown.style.display = "none";
+        }
+    });
+    
+    // Function to add product to edit order
+    function addProductToEditOrder(product, quantity) {
+        if (!product || !quantity || quantity < 1) return;
+        
+        const existingItem = items.find(item => item.name.toLowerCase() === product.name.toLowerCase());
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            items.push({
+                name: product.name,
+                price: product.price,
+                sp: product.sp,
+                quantity: quantity
+            });
+        }
+        
+        editSearchInput.value = "";
+        editQuantityInput.value = "1";
+        renderUI();
+    }
 
     function renderUI() {
-        editOrderSummary.innerHTML = "";
+        const editOrderItems = document.getElementById("edit-order-items");
+        if (!editOrderItems) return;
+        
+        editOrderItems.innerHTML = "";
         let totalCost = 0;
         let totalSp = 0;
 
@@ -480,7 +570,7 @@ function displayEditableOrder(order) {
             itemGroup.appendChild(removeBtn);
 
             row.appendChild(itemGroup);
-            editOrderSummary.appendChild(row);
+            editOrderItems.appendChild(row);
         });
 
         updateTotals();
@@ -495,17 +585,31 @@ function displayEditableOrder(order) {
             totalSp += item.sp * item.quantity;
         });
 
-        editTotalCostElement.textContent = `Total Cost: ₹${totalCost.toFixed(2)}`;
-        editTotalSpElement.textContent = `Total SP: ${totalSp.toFixed(2)}`;
+        // Update the total displays
+        const editTotalCostElement = document.getElementById("edit-total-cost");
+        const editTotalSpElement = document.getElementById("edit-total-sp");
+        if (editTotalCostElement) editTotalCostElement.textContent = `Total Cost: ₹${totalCost.toFixed(2)}`;
+        if (editTotalSpElement) editTotalSpElement.textContent = `Total SP: ${totalSp.toFixed(2)}`;
     }
-
-    // Prevent duplicate event bindings
-    saveEditedOrderBtn.replaceWith(saveEditedOrderBtn.cloneNode(true));
-    const newSaveBtn = document.getElementById("save-edited-order");
-
-    newSaveBtn.onclick = () => {
-        saveEditedOrder(order.uid, items);
-    };
+    
+    // Set up save button
+    const saveBtn = document.getElementById("save-edited-order");
+    if (saveBtn) {
+        saveBtn.onclick = () => saveEditedOrder(order.uid, items);
+    }
+    
+    // Set up add button
+    if (editAddButton) {
+        editAddButton.onclick = () => {
+            const productName = editSearchInput.value.trim();
+            const product = products.find(p => p.name.toLowerCase() === productName.toLowerCase());
+            if (product) {
+                addProductToEditOrder(product, parseInt(editQuantityInput.value) || 1);
+            } else {
+                alert("Please select a valid product from the dropdown");
+            }
+        };
+    }
 
     renderUI();
 
