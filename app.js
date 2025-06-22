@@ -24,12 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const editOrderSummary = document.getElementById("edit-order-summary");
     const editTotalCostElement = document.getElementById("edit-total-cost");
     const editTotalSpElement = document.getElementById("edit-total-sp");
+    // Enable adding new products in edit mode
+    const editNewProductInput = document.getElementById("edit-product-name");
+    const editProductDropdown = document.getElementById("edit-product-dropdown");
+    const editProductQtyInput = document.getElementById("edit-product-quantity");
+    const addProductToEditOrderBtn = document.getElementById("edit-add-product");
     const saveEditedOrderBtn = document.getElementById("save-edited-order");
 
 
 
     let products = [];
     let selectedProducts = [];
+    let editingOrderItems = [];
 
     // Fetch the product list from the backend
     fetch("https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/products", {
@@ -422,82 +428,122 @@ function displayEditableOrder(order) {
     editOrderSection.style.display = "block";
     editOrderSummary.innerHTML = "";
 
-    // Parse fresh copy of items every time to avoid duplicating
-    const items = order.product_names.split(", ").map(item => {
-        const [namePart, qtyPart, pricePart, spPart] = item.split(" x ");
-        return {
-            name: namePart.trim(),
-            quantity: parseInt(qtyPart.split(": ")[1]),
-            price: parseFloat(pricePart.split(": ")[1]),
-            sp: parseFloat(spPart.split(": ")[1])
-        };
+    editingOrderItems = order.product_names.split(", ").map(item => {
+      const [namePart, qtyPart, pricePart, spPart] = item.split(" x ");
+      return {
+        name: namePart.trim(),
+        quantity: parseInt(qtyPart.split(": ")[1]),
+        price: parseFloat(pricePart.split(": ")[1]),
+        sp: parseFloat(spPart.split(": ")[1])
+      };
     });
 
-    function renderUI() {
-        editOrderSummary.innerHTML = "";
-        let totalCost = 0;
-        let totalSp = 0;
+    renderEditableSummary();
+  }
 
-        items.forEach((item, index) => {
-            const row = document.createElement("div");
-            row.style.display = "flex";
-            row.style.justifyContent = "space-between";
-            row.style.marginBottom = "6px";
+  function renderEditableSummary() {
+    editOrderSummary.innerHTML = "";
+    let totalCost = 0;
+    let totalSp = 0;
 
-            const nameSpan = document.createElement("span");
-            nameSpan.textContent = item.name;
+    editingOrderItems.forEach((item, index) => {
+      totalCost += item.price * item.quantity;
+      totalSp += item.sp * item.quantity;
 
-            const qtyInput = document.createElement("input");
-            qtyInput.type = "number";
-            qtyInput.min = "0";
-            qtyInput.value = item.quantity;
-            qtyInput.style.width = "60px";
-            qtyInput.classList.add("edit-qty");
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.justifyContent = "space-between";
+      row.style.marginBottom = "6px";
 
-            qtyInput.setAttribute("data-price", item.price);
-            qtyInput.setAttribute("data-sp", item.sp);
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = item.name;
 
-            qtyInput.addEventListener("input", () => {
-                const newQty = parseInt(qtyInput.value);
-                if (!isNaN(newQty)) {
-                    item.quantity = newQty;
-                    updateTotals();
-                }
-            });
+      const qtyInput = document.createElement("input");
+      qtyInput.type = "number";
+      qtyInput.min = "0";
+      qtyInput.value = item.quantity;
+      qtyInput.style.width = "60px";
+      qtyInput.classList.add("edit-qty");
+      qtyInput.setAttribute("data-index", index);
+      qtyInput.addEventListener("change", () => {
+        editingOrderItems[index].quantity = parseInt(qtyInput.value);
+        renderEditableSummary();
+      });
 
-            const removeBtn = document.createElement("button");
-            removeBtn.textContent = "❌";
-            removeBtn.style.fontSize = "10px";
-            removeBtn.style.marginLeft = "10px";
-            removeBtn.addEventListener("click", () => {
-                items.splice(index, 1);
-                renderUI();  // re-render after removing
-            });
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "❌";
+      removeBtn.style.fontSize = "10px";
+      removeBtn.style.marginLeft = "10px";
+      removeBtn.addEventListener("click", () => {
+        editingOrderItems.splice(index, 1);
+        renderEditableSummary();
+      });
 
-            const itemGroup = document.createElement("div");
-            itemGroup.appendChild(nameSpan);
-            itemGroup.appendChild(qtyInput);
-            itemGroup.appendChild(removeBtn);
+      const itemGroup = document.createElement("div");
+      itemGroup.appendChild(nameSpan);
+      itemGroup.appendChild(qtyInput);
+      itemGroup.appendChild(removeBtn);
 
-            row.appendChild(itemGroup);
-            editOrderSummary.appendChild(row);
+      row.appendChild(itemGroup);
+      editOrderSummary.appendChild(row);
+    });
+
+    editTotalCostElement.textContent = `Total Cost: ₹${totalCost.toFixed(2)}`;
+    editTotalSpElement.textContent = `Total SP: ${totalSp.toFixed(2)}`;
+  }
+
+  editNewProductInput.addEventListener("input", () => {
+    const query = editNewProductInput.value.toLowerCase();
+    editProductDropdown.innerHTML = "";
+
+    if (query) {
+      const filtered = products.filter((product) =>
+        product.name.toLowerCase().includes(query)
+      );
+
+      filtered.forEach((product) => {
+        const item = document.createElement("div");
+        item.textContent = product.name;
+        item.classList.add("dropdown-item");
+        item.addEventListener("click", () => {
+          editNewProductInput.value = product.name;
+          editProductDropdown.style.display = "none";
         });
+        editProductDropdown.appendChild(item);
+      });
 
-        updateTotals();
+      editProductDropdown.style.display = "block";
+    } else {
+      editProductDropdown.style.display = "none";
+    }
+  });
+
+  addProductToEditOrderBtn.addEventListener("click", () => {
+    const query = editNewProductInput.value.toLowerCase().trim();
+    const quantity = parseInt(editProductQtyInput.value);
+
+    if (!query || isNaN(quantity) || quantity <= 0) {
+      alert("Please enter a valid product name and quantity.");
+      return;
     }
 
-    function updateTotals() {
-        let totalCost = 0;
-        let totalSp = 0;
+    const matchingProduct = products.find(p => p.name.toLowerCase() === query);
 
-        items.forEach(item => {
-            totalCost += item.price * item.quantity;
-            totalSp += item.sp * item.quantity;
-        });
-
-        editTotalCostElement.textContent = `Total Cost: ₹${totalCost.toFixed(2)}`;
-        editTotalSpElement.textContent = `Total SP: ${totalSp.toFixed(2)}`;
+    if (matchingProduct) {
+      editingOrderItems.push({
+        name: matchingProduct.name,
+        quantity,
+        price: matchingProduct.price,
+        sp: matchingProduct.sp
+      });
+      editNewProductInput.value = "";
+      editProductQtyInput.value = "";
+      renderEditableSummary();
+    } else {
+      alert("Product not found. Please select a valid product from the list.");
     }
+  });
+
 
     // Prevent duplicate event bindings
     saveEditedOrderBtn.replaceWith(saveEditedOrderBtn.cloneNode(true));
