@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const addProductButton = document.getElementById("add-product");
     const getOrdersButton = document.getElementById("get-orders");
     const orderHistoryElement = document.getElementById("order-history");
-    const customerNameSearchInput = document.getElementById("customer-name-search");
+    const orderNumberSearchInput = document.getElementById("order-number-search");
     const orderNumberInput = document.getElementById("order-number");
     const nameInput = document.getElementById("new-product-name");
     const priceInput = document.getElementById("new-product-price");
@@ -164,12 +164,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     // Fetch last 100 orders logic
         getOrdersButton.addEventListener("click", () => {
-            const customerName = customerNameSearchInput.value.trim();
+            const orderNumber = orderNumberSearchInput.value.trim();
             let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=100";
 
-            if (customerName) {
-                // Ensure the value is URL encoded correctly
-                url += `&customer_name=eq.${encodeURIComponent(customerName)}`;
+            if (orderNumber) {
+                // Search by order number (uid)
+                url = `https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${encodeURIComponent(orderNumber)}`;
             }
 
             fetch(url, {
