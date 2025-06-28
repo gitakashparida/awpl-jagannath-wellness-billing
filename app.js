@@ -1,4 +1,31 @@
+// Authentication check
+const session = localStorage.getItem('jwb_auth_session');
+if (!session || window.location.pathname.endsWith('login.html')) {
+    if (!window.location.pathname.endsWith('login.html')) {
+        window.location.href = 'login.html';
+    }
+} else {
+    try {
+        const { username, expiry } = JSON.parse(session);
+        if (username !== 'JWAdmin' || Date.now() > expiry) {
+            localStorage.removeItem('jwb_auth_session');
+            window.location.href = 'login.html';
+        }
+    } catch (e) {
+        localStorage.removeItem('jwb_auth_session');
+        window.location.href = 'login.html';
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    // Setup logout button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('jwb_auth_session');
+            window.location.href = 'login.html';
+        });
+    }
     const searchInput = document.getElementById("product-search");
     const quantityInput = document.getElementById("product-quantity");
     const customerNameInput = document.getElementById("customer-name");
