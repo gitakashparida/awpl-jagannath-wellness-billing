@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const addProductButton = document.getElementById("add-product");
     const getOrdersButton = document.getElementById("get-orders");
     const orderHistoryElement = document.getElementById("order-history");
-    const orderNumberSearchInput = document.getElementById("order-number-search");
+    const orderDateSearchInput = document.getElementById("order-date-search");
     const orderNumberInput = document.getElementById("order-number");
     const nameInput = document.getElementById("new-product-name");
     const priceInput = document.getElementById("new-product-price");
@@ -164,12 +164,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     // Fetch last 100 orders logic
         getOrdersButton.addEventListener("click", () => {
-            const orderNumber = orderNumberSearchInput.value.trim();
+            const selectedDate = orderDateSearchInput.value.trim();
             let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?select=*&order=order_date.desc&limit=100";
 
-            if (orderNumber) {
-                // Search by order number (uid)
-                url = `https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${encodeURIComponent(orderNumber)}`;
+            if (selectedDate) {
+                // Search by date and get top 100 orders for that date
+                const startDate = `${selectedDate}T00:00:00.000Z`;
+                const endDate = `${selectedDate}T23:59:59.999Z`;
+                url = `https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?order_date=gte.${startDate}&order_date=lte.${endDate}&select=*&order=order_date.desc&limit=100`;
             }
 
             fetch(url, {
@@ -470,9 +472,8 @@ function displayEditableOrder(order) {
         editDropdown.innerHTML = "";
         
         if (query) {
-            const filtered = products.filter(p => 
-                p.name.toLowerCase().includes(query) && 
-                !items.some(item => item.name.toLowerCase() === p.name.toLowerCase())
+            const filtered = products.filter((product) =>
+                            product.name.toLowerCase().includes(query)
             );
             
             filtered.forEach(product => {

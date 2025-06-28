@@ -91,3 +91,50 @@ button {
 button:hover {
     background-color: #0056b3;
 }
+
+/* Order History Section Styling */
+.order-history-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.date-search-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.date-picker {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    flex-grow: 1;
+}
+
+.hint-text {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Style the date picker icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Style for the Get Orders button */
+#get-orders {
+    width: auto;
+    padding: 10px 20px;
+    white-space: nowrap;
+}

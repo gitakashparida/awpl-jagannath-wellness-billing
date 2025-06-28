@@ -64,11 +64,15 @@
 
 
 
-<!-- Get Last 50 Orders Section -->
-<h2>Order History</h2>
-<input type="text" id="order-number-search" placeholder="Enter order number" autocomplete="off" />
-<h2>     </h2>
-<button id="get-orders">Get Last 100 Orders</button>
+<!-- Order History Section -->
+<div class="order-history-container">
+    <h2>Order History</h2>
+    <div class="date-search-container">
+        <input type="date" id="order-date-search" class="date-picker" />
+        <button id="get-orders">Get Orders</button>
+    </div>
+    <p class="hint-text">Leave empty to see the latest 100 orders, or select a date to filter</p>
+</div>
 
 <!-- Display Last 50  approved Orders -->
 <div id="order-history"></div>
