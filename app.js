@@ -224,58 +224,97 @@ document.addEventListener("DOMContentLoaded", () => {
                             wrapper.className = "order-item";
 
                             const header = document.createElement("h4");
-                            header.textContent = `#${order.uid} - ${order.customer_name} - ₹${order.total_cost} (SP: ${order.total_sp})`;
+                            header.textContent = `#${order.uid} - ${order.customer_name}`;
 
-                            const meta = document.createElement("p");
-                            meta.style.fontSize = "12px";
-                            meta.style.margin = "4px 0 6px";
-                            meta.textContent = `🕒 ${new Date(order.order_date).toLocaleString()}`;
+                            const amount = document.createElement("div");
+                            amount.className = "order-amount";
+                            amount.textContent = `₹${order.total_cost} (SP: ${order.total_sp})`;
 
-                            const items = document.createElement("p");
-                            items.style.whiteSpace = "pre-wrap";
+                            const meta = document.createElement("div");
+                            meta.className = "order-meta";
+                            
+                            const dateIcon = document.createElement("span");
+                            dateIcon.textContent = "🕒";
+                            dateIcon.style.fontSize = "0.9em";
+                            
+                            const dateText = document.createElement("span");
+                            dateText.textContent = new Date(order.order_date).toLocaleString();
+                            
+                            meta.appendChild(dateIcon);
+                            meta.appendChild(dateText);
+
+                            const items = document.createElement("div");
+                            items.className = "order-items";
                             items.textContent = order.product_names;
 
-                            const deleteBtn = document.createElement("button");
-                            deleteBtn.textContent = "🗑️ Delete Order";
-                            deleteBtn.style.fontSize = "12px";
-                            deleteBtn.style.padding = "4px 8px";
-                            deleteBtn.style.marginTop = "6px";
-                            deleteBtn.style.backgroundColor = "#f44336";
-                            deleteBtn.style.color = "white";
-                            deleteBtn.style.border = "none";
-                            deleteBtn.style.borderRadius = "4px";
-                            deleteBtn.style.cursor = "pointer";
+                            const actions = document.createElement("div");
+                            actions.className = "order-actions";
 
-                            deleteBtn.addEventListener("click", () => {
+                            const editBtn = document.createElement("button");
+                            editBtn.className = "btn-edit";
+                            editBtn.innerHTML = `✏️ Edit`;
+                            editBtn.title = "Edit Order";
+                            editBtn.addEventListener("click", () => displayEditableOrder(order));
+
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.className = "btn-delete";
+                            deleteBtn.innerHTML = `🗑️ Delete`;
+                            deleteBtn.title = "Delete Order";
+
+                            deleteBtn.addEventListener("click", (e) => {
+                                e.stopPropagation();
                                 if (confirm(`Are you sure you want to delete order #${order.uid}?`)) {
                                     fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${order.uid}`, {
                                         method: "DELETE",
                                         headers: {
-                                            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8", // Replace with your actual API key
-                                                                Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`, // Replace with your actual Bearer token
-                                                                "Content-Type": "application/json",
+                                            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
+                                            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
+                                            "Content-Type": "application/json",
                                         },
                                     })
-                                        .then((response) => {
-                                            if (response.ok) {
-                                                alert("Order deleted successfully.");
-                                                wrapper.remove(); // remove from DOM
-                                            } else {
-                                                alert("Failed to delete order.");
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            console.error("Error deleting order:", error);
-                                            alert("An error occurred while deleting the order.");
-                                        });
+                                    .then((response) => {
+                                        if (response.ok) {
+                                            wrapper.style.animation = 'fadeOut 0.3s ease';
+                                            setTimeout(() => wrapper.remove(), 300);
+                                        } else {
+                                            throw new Error("Failed to delete order");
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        console.error("Error deleting order:", error);
+                                        alert("Failed to delete order. Please try again.");
+                                    });
                                 }
                             });
 
+                            // Add click handler for the entire order item
+                            wrapper.style.cursor = 'pointer';
+                            wrapper.addEventListener('click', (e) => {
+                                // Don't trigger if clicking on buttons
+                                if (!e.target.matches('button, button *')) {
+                                    displayEditableOrder(order);
+                                }
+                            });
+
+                            // Append all elements
+                            actions.appendChild(editBtn);
+                            actions.appendChild(deleteBtn);
+                            
                             wrapper.appendChild(header);
+                            wrapper.appendChild(amount);
                             wrapper.appendChild(meta);
                             wrapper.appendChild(items);
-                            wrapper.appendChild(deleteBtn);
-                            wrapper.style.padding = "10px";
+                            wrapper.appendChild(actions);
+                            orderHistoryElement.appendChild(wrapper);
+                            
+                            // Add animation
+                            wrapper.style.opacity = '0';
+                            wrapper.style.transform = 'translateY(10px)';
+                            setTimeout(() => {
+                                wrapper.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                wrapper.style.opacity = '1';
+                                wrapper.style.transform = 'translateY(0)';
+                            }, 10);
                             wrapper.style.border = "1px solid #ccc";
                             wrapper.style.marginBottom = "10px";
                             wrapper.style.borderRadius = "5px";
