@@ -242,6 +242,13 @@ document.addEventListener("DOMContentLoaded", () => {
                             
                             meta.appendChild(dateIcon);
                             meta.appendChild(dateText);
+                            
+                            // Add SP Availed status
+                            const spStatus = document.createElement("div");
+                            spStatus.className = "sp-availed";
+                            spStatus.textContent = `SP Availed: ${order.spAvailed ? 'YES' : 'NO'}`;
+                            meta.appendChild(document.createElement("br"));
+                            meta.appendChild(spStatus);
 
                             const items = document.createElement("div");
                             items.className = "order-items";
@@ -508,10 +515,58 @@ function displayEditableOrder(order) {
         <div class="edit-order-controls" style="margin-bottom: 15px;">
             <input type="text" id="edit-product-search" placeholder="Search products to add" style="width: 200px; padding: 5px;">
             <input type="number" id="edit-product-quantity" value="1" min="1" style="width: 60px; padding: 5px; margin: 0 10px;">
-            <h2>     </h2>
             <button id="edit-add-product" style="padding: 5px 10px;">Add Product</button>
+            <div style="display: inline-block; margin-left: 20px;">
+                <label for="sp-availed-toggle" style="margin-right: 10px;">SP Availed:</label>
+                <label class="switch">
+                    <input type="checkbox" id="sp-availed-toggle" ${order.spAvailed ? 'checked' : ''}>
+                    <span class="slider round"></span>
+                </label>
+                <span id="sp-availed-status" style="margin-left: 10px;">${order.spAvailed ? 'YES' : 'NO'}</span>
+            </div>
             <div id="edit-product-dropdown" class="dropdown" style="position: absolute; z-index: 1000;"></div>
         </div>
+        <style>
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 60px;
+                height: 24px;
+            }
+            .switch input { 
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                transition: .4s;
+                border-radius: 24px;
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 16px;
+                width: 16px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+            input:checked + .slider {
+                background-color: #4CAF50;
+            }
+            input:checked + .slider:before {
+                transform: translateX(36px);
+            }
+        </style>
         <div id="edit-order-items"></div>
     `;
 
@@ -666,6 +721,15 @@ function displayEditableOrder(order) {
         saveBtn.onclick = () => saveEditedOrder(order.uid, items);
     }
     
+    // Update SP Availed status text when toggle changes
+    const spAvailedToggle = document.getElementById('sp-availed-toggle');
+    const spAvailedStatus = document.getElementById('sp-availed-status');
+    if (spAvailedToggle && spAvailedStatus) {
+        spAvailedToggle.addEventListener('change', function() {
+            spAvailedStatus.textContent = this.checked ? 'YES' : 'NO';
+        });
+    }
+    
     // Set up add button
     if (editAddButton) {
         editAddButton.onclick = () => {
@@ -721,10 +785,12 @@ function saveEditedOrder(orderUid) {
     const updatedTotalCost = updatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const updatedTotalSp = updatedItems.reduce((sum, item) => sum + item.sp * item.quantity, 0);
 
+    const spAvailed = document.getElementById('sp-availed-toggle').checked;
     const updatedOrder = {
         product_names: updatedProductNames,
         total_cost: updatedTotalCost,
-        total_sp: updatedTotalSp
+        total_sp: updatedTotalSp,
+        spAvailed: spAvailed
     };
 
     console.log("Before patch request",updatedOrder);
@@ -765,10 +831,12 @@ function saveEditedOrder(orderUid) {
         const customerName = customerNameInput.value.trim() || "Anonymous Customer";
 
         const orderData = {
-            customer_name: customerName,
-            product_names: selectedProducts.map((p) => `${p.name} x Qty: ${p.quantity} x Price: ${p.price} x SP: ${p.sp}`).join(", "),
+            customer_name: customerNameInput.value.trim(),
+            product_names: selectedProducts.map(p => `${p.quantity} x ${p.name} (₹${p.price})`).join("\n"),
+            order_date: new Date().toISOString(),
             total_cost: selectedProducts.reduce((sum, p) => sum + p.price * p.quantity, 0),
             total_sp: selectedProducts.reduce((sum, p) => sum + p.sp * p.quantity, 0),
+            phoneNumber: '7381716240'  // Default phone number
         };
         console.log("orderData", orderData);
         fetch("https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders", {
