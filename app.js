@@ -830,10 +830,15 @@ function saveEditedOrder(orderUid) {
 
         const customerName = customerNameInput.value.trim() || "Anonymous Customer";
 
+        // Get current time in IST (UTC+5:30)
+        const now = new Date();
+        const istOffset = 330; // IST is UTC+5:30 = 330 minutes
+        const istTime = new Date(now.getTime() + (istOffset * 60 * 1000));
+        
         const orderData = {
             customer_name: customerNameInput.value.trim(),
-            product_names: selectedProducts.map(p => `${p.quantity} x ${p.name} (₹${p.price})`).join("\n"),
-            order_date: new Date().toISOString(),
+            product_names: selectedProducts.map(p => `${p.name} x Qty: ${p.quantity} x Price: ${p.price} x SP: ${p.sp}`).join(", "),
+            order_date: istTime.toISOString(),
             total_cost: selectedProducts.reduce((sum, p) => sum + p.price * p.quantity, 0),
             total_sp: selectedProducts.reduce((sum, p) => sum + p.sp * p.quantity, 0),
             phoneNumber: '7381716240'  // Default phone number
@@ -903,7 +908,9 @@ function saveEditedOrder(orderUid) {
                            hour: '2-digit',
                            minute: '2-digit',
                            second: '2-digit',
-                           hour12: true
+                           hour12: true,
+                           timeZone: 'Asia/Kolkata',
+                           timeZoneName: undefined
                        });
 
                        const { jsPDF } = window.jspdf;
@@ -960,7 +967,7 @@ function saveEditedOrder(orderUid) {
                                         }
 
                                         const parts = item.split(" x ");
-                                        const name = parts[0];
+                                        const name = parts[0].trim();
                                         const qty = parseInt(parts[1].split(": ")[1]);
                                         const priceVal = parseFloat(parts[2].split(": ")[1]);
                                         const sp = parts[3].split(": ")[1];
