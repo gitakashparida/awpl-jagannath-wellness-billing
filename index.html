@@ -90,6 +90,50 @@
 <!-- Display Last 50  approved Orders -->
 <div id="order-history"></div>
 
+    <hr />
+    <h1>JW - Customer Management</h1>
+
+    <!-- Add new customer -->
+    <div style="margin-bottom:12px;">
+        <input type="text" id="new-customer-name" placeholder="Customer name" />
+        <input type="text" id="new-customer-phone" placeholder="Phone (optional)" />
+        <input type="number" id="new-customer-balance" placeholder="Balance Due (₹)" step="0.01" />
+        <input type="number" id="new-customer-sp" placeholder="SP Due" step="0.0001" />
+        <h2>     </h2>
+        <button id="add-customer-btn">Add Customer</button>
+    </div>
+
+    <!-- Search + summary -->
+    <div style="margin-bottom:12px;">
+        <input type="text" id="customer-search" placeholder="Enter name or phone" autocomplete="off" />
+        <h2>     </h2>
+        <div id="customer-search-dropdown" class="dropdown"></div>
+        <button id="load-customer-btn">Load Customer</button>
+    </div>
+
+    <div id="customer-summary" style="display:none; border:1px solid #ddd; padding:10px; margin-bottom:12px;">
+        <h3 id="customer-summary-header"></h3>
+        <div id="customer-current-bal"></div>
+        <div id="customer-current-sp"></div>
+    </div>
+
+    <!-- Actions -->
+    <div id="customer-activity-panel" style="display:none; margin-bottom:12px;">
+        <input type="number" id="activity-payment-amount" placeholder="Payment (₹)" step="0.01" />
+        <h2>     </h2>
+        <button id="record-payment-btn">Record Payment</button>
+        <h2>     </h2>
+        <input type="number" id="activity-sp-amount" placeholder="SP Availed" step="0.0001" />
+        <h2>     </h2>
+        <button id="record-sp-btn">Record SP Availed</button>
+    </div>
+
+    <!-- History -->
+    <h4>Activity History</h4>
+    <div id="customer-activity-history" style="max-height:250px; overflow:auto; border:1px solid #eee; padding:8px;"></div>
+
+
 <script src="app.js"></script>
+<script src="customer-management.js"></script>
 </body>
 </html>
