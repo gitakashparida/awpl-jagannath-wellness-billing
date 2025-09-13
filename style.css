@@ -92,9 +92,10 @@ h2 {
 }
 
 #customer-name,
+#customer-search,
 #product-search {
-    width: 100%;
-    padding: 10px;
+    width: 60%;
+    padding: 5px;
     font-size: 16px;
     border-radius: 5px;
     border: 1px solid #ccc;

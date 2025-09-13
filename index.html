@@ -118,14 +118,23 @@
     </div>
 
     <!-- Actions -->
-    <div id="customer-activity-panel" style="display:none; margin-bottom:12px;">
-        <input type="number" id="activity-payment-amount" placeholder="Payment (₹)" step="0.01" />
-        <h2>     </h2>
-        <button id="record-payment-btn">Record Payment</button>
-        <h2>     </h2>
-        <input type="number" id="activity-sp-amount" placeholder="SP Availed" step="0.0001" />
-        <h2>     </h2>
-        <button id="record-sp-btn">Record SP Availed</button>
+    <div id="customer-activity-panel" style="display:none; margin-bottom:20px;">
+        <div class="button-columns">
+            <div class="button-column">
+                <h3 class="section-header">Receive Payment</h3>
+                <input type="number" id="activity-payment-amount" placeholder="Payment (₹)" step="0.01" />
+                <button id="record-payment-btn">Record Payment</button>
+                <input type="number" id="activity-sp-amount" placeholder="SP Used" step="0.0001" />
+                <button id="record-sp-btn">Record SP Availed</button>
+            </div>
+            <div class="button-column">
+                <h3 class="section-header">New Order Issue</h3>
+                <input type="number" id="add-balance-amount" placeholder="Add to Balance Due" step="0.01" />
+                <button id="add-balance-btn" class="add-btn">Add to Balance</button>
+                <input type="number" id="add-sp-amount" placeholder="Add to SP Due" step="0.0001" />
+                <button id="add-sp-btn" class="add-btn">Add to SP Due</button>
+            </div>
+        </div>
     </div>
 
     <!-- History -->
