@@ -111,28 +111,35 @@
         <button id="load-customer-btn">Load Customer</button>
     </div>
 
-    <div id="customer-summary" style="display:none; border:1px solid #ddd; padding:10px; margin-bottom:12px;">
-        <h3 id="customer-summary-header"></h3>
-        <div id="customer-current-bal"></div>
-        <div id="customer-current-sp"></div>
+    <div id="customer-summary" style="display:none; margin-bottom:20px;">
+        <h3 id="customer-summary-header" style="margin-bottom: 15px; color: #2c3e50;"></h3>
+        <table class="balance-summary">
+            <tr>
+                <td class="balance-label">Balance Due</td>
+                <td class="balance-value" id="customer-current-bal">-</td>
+                <td class="balance-spacer"></td>
+                <td class="balance-label">SP Not Used</td>
+                <td class="balance-value" id="customer-current-sp">-</td>
+            </tr>
+        </table>
     </div>
 
     <!-- Actions -->
     <div id="customer-activity-panel" style="display:none; margin-bottom:20px;">
         <div class="button-columns">
             <div class="button-column">
-                <h3 class="section-header">Receive Payment</h3>
+                <h3 class="section-header">Payment Received</h3>
                 <input type="number" id="activity-payment-amount" placeholder="Payment (₹)" step="0.01" />
-                <button id="record-payment-btn">Record Payment</button>
+                <button id="record-payment-btn">Amount Received</button>
                 <input type="number" id="activity-sp-amount" placeholder="SP Used" step="0.0001" />
-                <button id="record-sp-btn">Record SP Availed</button>
+                <button id="record-sp-btn">SP Used</button>
             </div>
             <div class="button-column">
-                <h3 class="section-header">New Order Issue</h3>
+                <h3 class="section-header">Order Issued</h3>
                 <input type="number" id="add-balance-amount" placeholder="Add to Balance Due" step="0.01" />
-                <button id="add-balance-btn" class="add-btn">Add to Balance</button>
-                <input type="number" id="add-sp-amount" placeholder="Add to SP Due" step="0.0001" />
-                <button id="add-sp-btn" class="add-btn">Add to SP Due</button>
+                <button id="add-balance-btn" class="add-btn">Balance Not Paid</button>
+                <input type="number" id="add-sp-amount" placeholder="SP Not Used" step="0.0001" />
+                <button id="add-sp-btn" class="add-btn">SP Not Used</button>
             </div>
         </div>
     </div>

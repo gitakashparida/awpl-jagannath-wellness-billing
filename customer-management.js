@@ -102,9 +102,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (customerSummary) customerSummary.style.display = "block";
             if (customerActivityPanel) customerActivityPanel.style.display = "block";
-            if (customerSummaryHeader) customerSummaryHeader.textContent = `${activeCustomer.name} (UID ${activeCustomer.uid})`;
-            if (customerCurrentBal) customerCurrentBal.textContent = `Balance Due: ₹${parseFloat(activeCustomer.balance_due).toFixed(2)}`;
-            if (customerCurrentSp) customerCurrentSp.textContent = `SP Due: ${parseFloat(activeCustomer.sp_due).toFixed(4)}`;
+            if (customerSummaryHeader) customerSummaryHeader.textContent = activeCustomer.name;
+            if (customerCurrentBal) customerCurrentBal.textContent = `₹${parseFloat(activeCustomer.balance_due).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (customerCurrentSp) customerCurrentSp.textContent = parseFloat(activeCustomer.sp_due).toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 
             loadHistory();
         });
@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Now adjust the running balance to what it was before this transaction
             if (activity.activity_type === 'Payment Received') {
                 runningBalance += parseFloat(activity.amount || 0);
-            } else if (activity.activity_type === 'SP Availed') {
+            } else if (activity.activity_type === 'SP Used') {
                 runningSpDue += parseFloat(activity.sp_amount || 0);
             } else if (activity.activity_type === 'New Order Purchase (Balance)') {
                 runningBalance -= parseFloat(activity.amount || 0);
@@ -151,12 +151,12 @@ document.addEventListener("DOMContentLoaded", () => {
             <table class="activity-table">
                 <thead>
                     <tr>
-                        <th>Date & Time</th>
+                        <th>Date</th>
                         <th>Activity Type</th>
                         <th>Amount (₹)</th>
-                        <th>SP Amount</th>
-                        <th>Updated Balance Due (₹)</th>
-                        <th>Updated SP Due</th>
+                        <th>SP </th>
+                        <th>Balance Not Paid (₹)</th>
+                        <th>SP Not Used</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -166,11 +166,10 @@ document.addEventListener("DOMContentLoaded", () => {
         activitiesWithBalances.forEach(activity => {
             const date = new Date(activity.created_at);
             const formattedDate = date.toLocaleDateString('en-IN');
-            const formattedTime = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
             
             html += `
                 <tr>
-                    <td>${formattedDate}<br><small>${formattedTime}</small></td>
+                    <td>${formattedDate}</td>
                     <td>${activity.activity_type}</td>
                     <td>${activity.amount ? '₹' + parseFloat(activity.amount).toFixed(2) : '-'}</td>
                     <td>${activity.sp_amount ? parseFloat(activity.sp_amount).toFixed(4) : '-'}</td>
@@ -229,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
             await supabaseFetch("/rest/v1/customer_activities", {
                 method: "POST",
                 headers: { Prefer: "return=representation" },
-                body: JSON.stringify({ customer_uid: activeCustomer.uid, activity_type: "SP Availed", sp_amount: sp }),
+                body: JSON.stringify({ customer_uid: activeCustomer.uid, activity_type: "SP Used", sp_amount: sp }),
             });
             
             const newSpDue = parseFloat(activeCustomer.sp_due) - sp;
@@ -240,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             
             activeCustomer.sp_due = newSpDue;
-            if (customerCurrentSp) customerCurrentSp.textContent = `SP Due: ${newSpDue.toFixed(4)}`;
+            if (customerCurrentSp) customerCurrentSp.textContent = `SP Not Used: ${newSpDue.toFixed(4)}`;
             spAmount.value = "";
             loadHistory();
         });
@@ -310,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             
             activeCustomer.sp_due = newSpDue;
-            if (customerCurrentSp) customerCurrentSp.textContent = `SP Due: ${newSpDue.toFixed(4)}`;
+            if (customerCurrentSp) customerCurrentSp.textContent = `SP Not Used: ${newSpDue.toFixed(4)}`;
             addSpAmount.value = "";
             loadHistory();
         });

@@ -246,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             // Add SP Availed status
                             const spStatus = document.createElement("div");
                             spStatus.className = "sp-availed";
-                            spStatus.textContent = `SP Availed: ${order.spAvailed ? 'YES' : 'NO'}`;
+                            spStatus.textContent = `SP Used: ${order.spAvailed ? 'YES' : 'NO'}`;
                             meta.appendChild(document.createElement("br"));
                             meta.appendChild(spStatus);
 
@@ -517,7 +517,7 @@ function displayEditableOrder(order) {
             <input type="number" id="edit-product-quantity" value="1" min="1" style="width: 60px; padding: 5px; margin: 0 10px;">
             <button id="edit-add-product" style="padding: 5px 10px;">Add Product</button>
             <div style="display: inline-block; margin-left: 20px;">
-                <label for="sp-availed-toggle" style="margin-right: 10px;">SP Availed:</label>
+                <label for="sp-availed-toggle" style="margin-right: 10px;">SP Used:</label>
                 <label class="switch">
                     <input type="checkbox" id="sp-availed-toggle" ${order.spAvailed ? 'checked' : ''}>
                     <span class="slider round"></span>
