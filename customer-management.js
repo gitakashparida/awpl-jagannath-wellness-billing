@@ -29,13 +29,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Helper for Supabase REST calls
     async function supabaseFetch(path, opts = {}) {
+        const baseUrl = 'https://gfyuuslvnlkbqztbduys.supabase.co';
+        const fullUrl = `${baseUrl}${path}`;
+        
         const headers = {
             apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
             Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
             "Content-Type": "application/json",
             ...opts.headers,
         };
-        return fetch(`https://gfyuuslvnlkbqztbduys.supabase.co${path}`, { ...opts, headers });
+
+        console.log('Making request to:', fullUrl);
+        console.log('Request options:', { method: opts.method || 'GET', headers });
+
+        try {
+            const response = await fetch(fullUrl, { 
+                ...opts, 
+                headers,
+                mode: 'cors', // Explicitly set CORS mode
+                credentials: 'same-origin' // Include credentials for same-origin requests
+            });
+
+            // Clone the response so we can read it multiple times
+            const responseClone = response.clone();
+            
+            if (!response.ok) {
+                try {
+                    const errorText = await response.text();
+                    console.error('Request failed:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        url: fullUrl,
+                        error: errorText
+                    });
+                } catch (e) {
+                    console.error('Failed to read error response:', e);
+                }
+                // Return the original response for error handling by the caller
+                return response;
+            }
+
+            // For successful responses, return the cloned response
+            return responseClone;
+        } catch (error) {
+            console.error('Fetch error:', {
+                url: fullUrl,
+                error: error.message,
+                stack: error.stack
+            });
+            throw error;
+        }
     }
 
     /* --- Add new customer --- */
@@ -112,81 +155,141 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* --- Load activity history --- */
     async function loadHistory() {
-        if (!activeCustomer || !activityHistoryDiv) return;
+        if (!activityHistoryDiv) return;
+        if (!activeCustomer || !activeCustomer.uid) {
+            console.error('No active customer or customer UID is missing');
+            activityHistoryDiv.innerHTML = '<p>No customer selected</p>';
+            return;
+        }
         
-        const res = await supabaseFetch(`/rest/v1/customer_activities?customer_uid=eq.${activeCustomer.uid}&order=created_at.desc&limit=50`);
-        const acts = await res.json();
+        // Show loading state
+        activityHistoryDiv.innerHTML = '<p>Loading activity history...</p>';
         
-        // Sort activities by date descending (newest first)
-        const sortedActs = [...acts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        
-        // Calculate running totals starting from the current balance
-        let runningBalance = parseFloat(activeCustomer.balance_due);
-        let runningSpDue = parseFloat(activeCustomer.sp_due);
-        
-        // Calculate the balance before each transaction by working backwards
-        const activitiesWithBalances = sortedActs.map(activity => {
-            const activityCopy = { ...activity };
+        try {
+            const url = `/rest/v1/customer_activities?customer_uid=eq.${encodeURIComponent(activeCustomer.uid)}&order=created_at.desc&limit=50`;
+            console.log('Fetching from URL:', url);
             
-            // Store the balance after this transaction
-            activityCopy.updated_balance = runningBalance.toFixed(2);
-            activityCopy.updated_sp_due = runningSpDue.toFixed(4);
+            const res = await supabaseFetch(url);
             
-            // Now adjust the running balance to what it was before this transaction
-            if (activity.activity_type === 'Payment Received') {
-                runningBalance += parseFloat(activity.amount || 0);
-            } else if (activity.activity_type === 'SP Used') {
-                runningSpDue += parseFloat(activity.sp_amount || 0);
-            } else if (activity.activity_type === 'New Order Purchase (Balance)') {
-                runningBalance -= parseFloat(activity.amount || 0);
-            } else if (activity.activity_type === 'New Order Purchase (SP)') {
-                runningSpDue -= parseFloat(activity.sp_amount || 0);
+            // Handle error response
+            if (!res.ok) {
+                let errorMessage = `Error ${res.status}: ${res.statusText}`;
+                try {
+                    const errorData = await res.json();
+                    errorMessage += ` - ${JSON.stringify(errorData)}`;
+                } catch (e) {
+                    // If we can't parse JSON, try to get text
+                    try {
+                        const errorText = await res.text();
+                        if (errorText) errorMessage += ` - ${errorText}`;
+                    } catch (textError) {
+                        console.error('Could not read error response:', textError);
+                    }
+                }
+                console.error('API Error:', errorMessage);
+                activityHistoryDiv.innerHTML = `<p class="error">Error loading activity history: ${res.status} ${res.statusText}</p>`;
+                return;
             }
             
-            return activityCopy;
-        });
-        
-        // Create table with headers
-        let html = `
-            <table class="activity-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Activity Type</th>
-                        <th>Amount (₹)</th>
-                        <th>SP </th>
-                        <th>Balance Not Paid (₹)</th>
-                        <th>SP Not Used</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        
-        // Add rows for each activity
-        activitiesWithBalances.forEach(activity => {
-            const date = new Date(activity.created_at);
-            const formattedDate = date.toLocaleDateString('en-IN');
+            // If we get here, the request was successful
+            const acts = await res.json();
+            if (!Array.isArray(acts)) {
+                console.error('Unexpected response format:', acts);
+                throw new Error('Invalid response format from server');
+            }
             
-            html += `
-                <tr>
-                    <td>${formattedDate}</td>
-                    <td>${activity.activity_type}</td>
-                    <td>${activity.amount ? '₹' + parseFloat(activity.amount).toFixed(2) : '-'}</td>
-                    <td>${activity.sp_amount ? parseFloat(activity.sp_amount).toFixed(4) : '-'}</td>
-                    <td>₹${activity.updated_balance}</td>
-                    <td>${activity.updated_sp_due}</td>
-                </tr>
+            // Sort activities by date descending (newest first)
+            const sortedActs = [...acts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            // Calculate running totals starting from the current balance
+            let runningBalance = parseFloat(activeCustomer.balance_due);
+            let runningSpDue = parseFloat(activeCustomer.sp_due);
+            
+            // Calculate the balance before each transaction by working backwards
+            const activitiesWithBalances = sortedActs.map(activity => {
+                const activityCopy = { ...activity };
+                
+                // Store the balance after this transaction
+                activityCopy.updated_balance = runningBalance.toFixed(2);
+                activityCopy.updated_sp_due = runningSpDue.toFixed(4);
+                
+                // Now adjust the running balance to what it was before this transaction
+                if (activity.balance_reduced) {
+                    runningBalance += parseFloat(activity.balance_reduced || 0);
+                } else if (activity.balance_added) {
+                    runningBalance -= parseFloat(activity.balance_added || 0);
+                }
+                
+                if (activity.sp_reduced) {
+                    runningSpDue += parseFloat(activity.sp_reduced || 0);
+                } else if (activity.sp_added) {
+                    runningSpDue -= parseFloat(activity.sp_added || 0);
+                }
+                
+                return activityCopy;
+            });
+            
+            // Create table with headers
+            let html = `
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>New Order Amount (₹)</th>
+                            <th>Payment Received (₹)</th>
+                            <th>New Order SP</th>
+                            <th>SP Used</th>
+                            <th>Balance Due (₹)</th>
+                            <th>SP Not Used</th>
+                        </tr>
+                    </thead>
+                    <tbody>
             `;
-        });
-        
-        // Close table
-        html += `
-                </tbody>
-            </table>
-            ${acts.length === 0 ? '<p>No activity history found.</p>' : ''}
-        `;
-        
-        activityHistoryDiv.innerHTML = html;
+            
+            // Add rows for each activity
+            activitiesWithBalances.forEach(activity => {
+                const date = new Date(activity.created_at);
+                const formattedDate = date.toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                
+                html += `
+                    <tr>
+                        <td>${formattedDate}</td>
+                        <td>${activity.note || '-'}</td>
+                        <td class="text-right">${activity.balance_added ? '₹' + parseFloat(activity.balance_added).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}</td>
+                        <td class="text-right">${activity.balance_reduced ? '₹' + parseFloat(activity.balance_reduced).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}</td>
+                        <td class="text-right">${activity.sp_added ? parseFloat(activity.sp_added).toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : '-'}</td>
+                        <td class="text-right">${activity.sp_reduced ? parseFloat(activity.sp_reduced).toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : '-'}</td>
+                        <td class="text-right">₹${parseFloat(activity.updated_balance).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td class="text-right">${parseFloat(activity.updated_sp_due).toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+                    </tr>
+                `;
+            });
+            
+            // Close table
+            html += `
+                    </tbody>
+                </table>
+                ${acts.length === 0 ? '<p>No activity history found.</p>' : ''}
+            `;
+            
+            // Wrap the table in a container for better responsiveness
+            if (acts.length > 0) {
+                html = `
+                <div class="table-container">
+                    ${html}
+                </div>`;
+            }
+            
+            activityHistoryDiv.innerHTML = html;
+        } catch (error) {
+            console.error('Error loading activity history:', error);
+            activityHistoryDiv.innerHTML = '<p class="error">Error loading activity history. Please try again later.</p>';
+        }
     }
 
     /* --- Record payment --- */
@@ -200,7 +303,11 @@ document.addEventListener("DOMContentLoaded", () => {
             await supabaseFetch("/rest/v1/customer_activities", {
                 method: "POST",
                 headers: { Prefer: "return=representation" },
-                body: JSON.stringify({ customer_uid: activeCustomer.uid, activity_type: "Payment Received", amount: amt }),
+                body: JSON.stringify({ 
+                    customer_uid: activeCustomer.uid, 
+                    balance_reduced: amt,
+                    note: "Amount Received"
+                }),
             });
             
             const newBalance = parseFloat(activeCustomer.balance_due) - amt;
@@ -228,7 +335,11 @@ document.addEventListener("DOMContentLoaded", () => {
             await supabaseFetch("/rest/v1/customer_activities", {
                 method: "POST",
                 headers: { Prefer: "return=representation" },
-                body: JSON.stringify({ customer_uid: activeCustomer.uid, activity_type: "SP Used", sp_amount: sp }),
+                body: JSON.stringify({ 
+                    customer_uid: activeCustomer.uid, 
+                    sp_reduced: sp,
+                    note: "SP Used"
+                }),
             });
             
             const newSpDue = parseFloat(activeCustomer.sp_due) - sp;
@@ -248,6 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- Add to Balance --- */
     const addBalanceBtn = document.getElementById("add-balance-btn");
     const addBalanceAmount = document.getElementById("add-balance-amount");
+    const orderNoteInput = document.getElementById("order-note");
     
     if (addBalanceBtn) {
         addBalanceBtn.addEventListener("click", async () => {
@@ -256,15 +368,21 @@ document.addEventListener("DOMContentLoaded", () => {
             const amount = parseFloat(addBalanceAmount.value);
             if (!amount || amount <= 0) { alert("Please enter a valid amount"); return; }
             
+            // Get the note text or use a default message
+            const noteText = orderNoteInput.value.trim() || "Balance Not Paid";
+            
             await supabaseFetch("/rest/v1/customer_activities", {
                 method: "POST",
                 headers: { Prefer: "return=representation" },
                 body: JSON.stringify({ 
                     customer_uid: activeCustomer.uid, 
-                    activity_type: "New Order Purchase (Balance)", 
-                    amount: amount
+                    balance_added: amount,
+                    note: noteText
                 }),
             });
+            
+            // Clear the note input after submission
+            orderNoteInput.value = "";
             
             const newBalance = parseFloat(activeCustomer.balance_due) + amount;
             await supabaseFetch(`/rest/v1/customers?uid=eq.${activeCustomer.uid}`, {
@@ -296,8 +414,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { Prefer: "return=representation" },
                 body: JSON.stringify({ 
                     customer_uid: activeCustomer.uid, 
-                    activity_type: "New Order Purchase (SP)", 
-                    sp_amount: sp
+                    sp_added: sp,
+                    note: "SP Not Used"
                 }),
             });
             

@@ -137,6 +137,7 @@
             <div class="button-column">
                 <h3 class="section-header">Order Issued</h3>
                 <input type="number" id="add-balance-amount" placeholder="Add to Balance Due" step="0.01" />
+                <input type="text" id="order-note" placeholder="Order Note" />
                 <button id="add-balance-btn" class="add-btn">Balance Not Paid</button>
                 <input type="number" id="add-sp-amount" placeholder="SP Not Used" step="0.0001" />
                 <button id="add-sp-btn" class="add-btn">SP Not Used</button>
@@ -146,7 +147,9 @@
 
     <!-- History -->
     <h4>Activity History</h4>
-    <div id="customer-activity-history" style="max-height:250px; overflow:auto; border:1px solid #eee; padding:8px;"></div>
+    <div class="table-container">
+        <div id="customer-activity-history"></div>
+    </div>
 
 
 <script src="app.js"></script>
