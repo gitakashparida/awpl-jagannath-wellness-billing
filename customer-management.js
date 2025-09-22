@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <th>Payment Received (₹)</th>
                             <th>New Order SP</th>
                             <th>SP Used</th>
-                            <th>Balance Due (₹)</th>
+                            <th>Balance Not Paid (₹)</th>
                             <th>SP Not Used</th>
                         </tr>
                     </thead>
@@ -292,6 +292,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Get all note input elements
+    const paymentNoteInput = document.getElementById("payment-note");
+    const spUsedNoteInput = document.getElementById("sp-used-note");
+    const spNotUsedNoteInput = document.getElementById("sp-notused-note");
+    
     /* --- Record payment --- */
     if (recordPaymentBtn) {
         recordPaymentBtn.addEventListener("click", async () => {
@@ -300,15 +305,21 @@ document.addEventListener("DOMContentLoaded", () => {
             const amt = parseFloat(paymentAmount.value);
             if (!amt) return;
             
+            // Get the payment note text or use a default message
+            const noteText = paymentNoteInput.value.trim() || "Amount Received";
+            
             await supabaseFetch("/rest/v1/customer_activities", {
                 method: "POST",
                 headers: { Prefer: "return=representation" },
                 body: JSON.stringify({ 
                     customer_uid: activeCustomer.uid, 
                     balance_reduced: amt,
-                    note: "Amount Received"
+                    note: noteText
                 }),
             });
+            
+            // Clear the note input after submission
+            paymentNoteInput.value = "";
             
             const newBalance = parseFloat(activeCustomer.balance_due) - amt;
             await supabaseFetch(`/rest/v1/customers?uid=eq.${activeCustomer.uid}`, {
@@ -318,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             
             activeCustomer.balance_due = newBalance;
-            if (customerCurrentBal) customerCurrentBal.textContent = `Balance Due: ₹${newBalance.toFixed(2)}`;
+            if (customerCurrentBal) customerCurrentBal.textContent = `Balance Not Paid: ₹${newBalance.toFixed(2)}`;
             paymentAmount.value = "";
             loadHistory();
         });
@@ -332,15 +343,21 @@ document.addEventListener("DOMContentLoaded", () => {
             const sp = parseFloat(spAmount.value);
             if (!sp) return;
             
+            // Get the SP used note text or use a default message
+            const noteText = spUsedNoteInput.value.trim() || "SP Used";
+            
             await supabaseFetch("/rest/v1/customer_activities", {
                 method: "POST",
                 headers: { Prefer: "return=representation" },
                 body: JSON.stringify({ 
                     customer_uid: activeCustomer.uid, 
                     sp_reduced: sp,
-                    note: "SP Used"
+                    note: noteText
                 }),
             });
+            
+            // Clear the note input after submission
+            spUsedNoteInput.value = "";
             
             const newSpDue = parseFloat(activeCustomer.sp_due) - sp;
             await supabaseFetch(`/rest/v1/customers?uid=eq.${activeCustomer.uid}`, {
@@ -392,7 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             
             activeCustomer.balance_due = newBalance;
-            if (customerCurrentBal) customerCurrentBal.textContent = `Balance Due: ₹${newBalance.toFixed(2)}`;
+            if (customerCurrentBal) customerCurrentBal.textContent = `Balance Not Paid: ₹${newBalance.toFixed(2)}`;
             addBalanceAmount.value = "";
             loadHistory();
         });
@@ -409,15 +426,21 @@ document.addEventListener("DOMContentLoaded", () => {
             const sp = parseFloat(addSpAmount.value);
             if (!sp || sp <= 0) { alert("Please enter a valid SP amount"); return; }
             
+            // Get the SP not used note text or use a default message
+            const noteText = spNotUsedNoteInput.value.trim() || "SP Not Used";
+            
             await supabaseFetch("/rest/v1/customer_activities", {
                 method: "POST",
                 headers: { Prefer: "return=representation" },
                 body: JSON.stringify({ 
                     customer_uid: activeCustomer.uid, 
                     sp_added: sp,
-                    note: "SP Not Used"
+                    note: noteText
                 }),
             });
+            
+            // Clear the note input after submission
+            spNotUsedNoteInput.value = "";
             
             const newSpDue = parseFloat(activeCustomer.sp_due) + sp;
             await supabaseFetch(`/rest/v1/customers?uid=eq.${activeCustomer.uid}`, {

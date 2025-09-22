@@ -97,7 +97,7 @@
     <div style="margin-bottom:12px;">
         <input type="text" id="new-customer-name" placeholder="Customer name" />
         <input type="text" id="new-customer-phone" placeholder="Phone (optional)" />
-        <input type="number" id="new-customer-balance" placeholder="Balance Due (₹)" step="0.01" />
+        <input type="number" id="new-customer-balance" placeholder="Balance Not Paid (₹)" step="0.01" />
         <input type="number" id="new-customer-sp" placeholder="SP Due" step="0.0001" />
         <h2>     </h2>
         <button id="add-customer-btn">Add Customer</button>
@@ -115,7 +115,7 @@
         <h3 id="customer-summary-header" style="margin-bottom: 15px; color: #2c3e50;"></h3>
         <table class="balance-summary">
             <tr>
-                <td class="balance-label">Balance Due</td>
+                <td class="balance-label">Balance Not Paid</td>
                 <td class="balance-value" id="customer-current-bal">-</td>
                 <td class="balance-spacer"></td>
                 <td class="balance-label">SP Not Used</td>
@@ -130,16 +130,19 @@
             <div class="button-column">
                 <h3 class="section-header">Payment Received</h3>
                 <input type="number" id="activity-payment-amount" placeholder="Payment (₹)" step="0.01" />
+                <input type="text" id="payment-note" placeholder="Payment Note" />
                 <button id="record-payment-btn">Amount Received</button>
                 <input type="number" id="activity-sp-amount" placeholder="SP Used" step="0.0001" />
+                <input type="text" id="sp-used-note" placeholder="SP Used Note" />
                 <button id="record-sp-btn">SP Used</button>
             </div>
             <div class="button-column">
-                <h3 class="section-header">Order Issued</h3>
-                <input type="number" id="add-balance-amount" placeholder="Add to Balance Due" step="0.01" />
+                <h3 class="section-header">Cost of Products</h3>
+                <input type="number" id="add-balance-amount" placeholder="Add to Balance Not Paid" step="0.01" />
                 <input type="text" id="order-note" placeholder="Order Note" />
                 <button id="add-balance-btn" class="add-btn">Balance Not Paid</button>
                 <input type="number" id="add-sp-amount" placeholder="SP Not Used" step="0.0001" />
+                <input type="text" id="sp-notused-note" placeholder="SP Not Used Note" />
                 <button id="add-sp-btn" class="add-btn">SP Not Used</button>
             </div>
         </div>

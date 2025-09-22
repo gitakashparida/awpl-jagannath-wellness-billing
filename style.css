@@ -346,6 +346,7 @@ h2 {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-collapse: separate;
     overflow: hidden;
+    color: #e74c3c; /* Red text color for all text in the balance summary */
 }
 
 .balance-summary td {
@@ -356,16 +357,16 @@ h2 {
 .balance-label {
     font-size: 16px;
     font-weight: 600;
-    color: #4a5568;
+    color: #e74c3c; /* Red color for labels */
     background-color: #f8fafc;
     white-space: nowrap;
     border-bottom: 1px solid #e2e8f0;
 }
 
 .balance-value {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
-    color: #2d3748;
+    color: #e74c3c; /* Red color for values */
     background-color: #ffffff;
     border-bottom: 1px solid #e2e8f0;
 }
