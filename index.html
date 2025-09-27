@@ -128,22 +128,31 @@
     <div id="customer-activity-panel" style="display:none; margin-bottom:20px;">
         <div class="button-columns">
             <div class="button-column">
+                <div style="height: 2px; background-color: #000; margin: 0 0 20px 0;"></div>
                 <h3 class="section-header">Payment Received</h3>
                 <input type="number" id="activity-payment-amount" placeholder="Payment (₹)" step="0.01" />
                 <input type="text" id="payment-note" placeholder="Payment Note" />
                 <button id="record-payment-btn">Amount Received</button>
+                
+                <h3 class="section-header" style="margin-top: 20px;">SP Used</h3>
                 <input type="number" id="activity-sp-amount" placeholder="SP Used" step="0.0001" />
                 <input type="text" id="sp-used-note" placeholder="SP Used Note" />
                 <button id="record-sp-btn">SP Used</button>
+                
+                <div style="height: 2px; background-color: #000; margin: 25px 0;"></div>
+                
+                <h3 class="section-header" style="margin-top: 25px;">Advance Payment Received</h3>
+                <input type="number" id="advance-payment-amount" placeholder="Advance Payment (₹)" step="0.01" />
+                <input type="text" id="advance-payment-note" placeholder="Advance Payment Note" />
+                <button id="record-advance-payment-btn" class="blue-btn">Record Advance Payment</button>
             </div>
             <div class="button-column">
+                <div style="height: 2px; background-color: #000; margin: 0 0 20px 0;"></div>
                 <h3 class="section-header">Cost of Products</h3>
-                <input type="number" id="add-balance-amount" placeholder="Add to Balance Not Paid" step="0.01" />
-                <input type="text" id="order-note" placeholder="Order Note" />
-                <button id="add-balance-btn" class="add-btn">Balance Not Paid</button>
+                <input type="number" id="add-balance-amount" placeholder="Balance Not Paid (₹)" step="0.01" />
                 <input type="number" id="add-sp-amount" placeholder="SP Not Used" step="0.0001" />
-                <input type="text" id="sp-notused-note" placeholder="SP Not Used Note" />
-                <button id="add-sp-btn" class="add-btn">SP Not Used</button>
+                <input type="text" id="order-note" placeholder="Order Note" />
+                <button id="update-order-btn" class="red-btn">Update SP and Balance for New Order</button>
             </div>
         </div>
     </div>

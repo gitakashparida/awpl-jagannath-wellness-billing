@@ -96,7 +96,7 @@ h2 {
     width: 100%;
     border-collapse: collapse;
     margin: 15px 0;
-    font-size: 0.85rem;
+    font-size: 1rem;
     table-layout: auto;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
@@ -184,12 +184,12 @@ h2 {
 /* Responsive adjustments */
 @media (max-width: 1200px) {
     .activity-table {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
     
     .activity-table th,
     .activity-table td {
-        padding: 8px 6px;
+        padding: 10px 8px;
     }
 }
 
@@ -274,6 +274,13 @@ h2 {
     }
 }
 
+#customer-activity-history h4 {
+    margin: 25px 0 20px 0;
+    color: #2c3e50;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
 /* Button Columns Layout */
 .button-columns {
     display: flex;
@@ -330,8 +337,28 @@ h2 {
 }
 
 .add-btn {
-    background-color: #007bff;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.red-btn {
+    background-color: #e74c3c;
     color: white;
+    border: 1px solid #c0392b;
+}
+
+.red-btn:hover {
+    background-color: #c0392b;
+}
+
+.blue-btn {
+    background-color: #3498db;
+    color: white;
+    border: 1px solid #2980b9;
+}
+
+.blue-btn:hover {
+    background-color: #2980b9;
 }
 
 .add-btn:hover {

@@ -296,6 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const paymentNoteInput = document.getElementById("payment-note");
     const spUsedNoteInput = document.getElementById("sp-used-note");
     const spNotUsedNoteInput = document.getElementById("sp-notused-note");
+    const advancePaymentNoteInput = document.getElementById("advance-payment-note");
     
     /* --- Record payment --- */
     if (recordPaymentBtn) {
@@ -329,8 +330,49 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             
             activeCustomer.balance_due = newBalance;
-            if (customerCurrentBal) customerCurrentBal.textContent = `Balance Not Paid: ₹${newBalance.toFixed(2)}`;
+            if (customerCurrentBal) customerCurrentBal.textContent = `₹${newBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             paymentAmount.value = "";
+            loadHistory();
+        });
+    }
+
+    /* --- Record Advance Payment --- */
+    const recordAdvancePaymentBtn = document.getElementById("record-advance-payment-btn");
+    const advancePaymentAmount = document.getElementById("advance-payment-amount");
+    
+    if (recordAdvancePaymentBtn) {
+        recordAdvancePaymentBtn.addEventListener("click", async () => {
+            if (!activeCustomer) { alert("No customer selected"); return; }
+            
+            const amt = parseFloat(advancePaymentAmount.value);
+            if (!amt || amt <= 0) { alert("Please enter a valid amount"); return; }
+            
+            // Get the advance payment note text or use the default message
+            const noteText = advancePaymentNoteInput.value.trim() || "Advance Payment Received";
+            
+            await supabaseFetch("/rest/v1/customer_activities", {
+                method: "POST",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({ 
+                    customer_uid: activeCustomer.uid, 
+                    balance_reduced: amt,
+                    note: noteText
+                }),
+            });
+            
+            // Clear the note input after submission
+            advancePaymentNoteInput.value = "";
+            
+            const newBalance = parseFloat(activeCustomer.balance_due) - amt;
+            await supabaseFetch(`/rest/v1/customers?uid=eq.${activeCustomer.uid}`, {
+                method: "PATCH",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({ balance_due: newBalance }),
+            });
+            
+            activeCustomer.balance_due = newBalance;
+            if (customerCurrentBal) customerCurrentBal.textContent = `₹${newBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            advancePaymentAmount.value = "";
             loadHistory();
         });
     }
@@ -367,92 +409,96 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             
             activeCustomer.sp_due = newSpDue;
-            if (customerCurrentSp) customerCurrentSp.textContent = `SP Not Used: ${newSpDue.toFixed(4)}`;
+            if (customerCurrentSp) customerCurrentSp.textContent = newSpDue.toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             spAmount.value = "";
             loadHistory();
         });
     }
 
-    /* --- Add to Balance --- */
-    const addBalanceBtn = document.getElementById("add-balance-btn");
+    /* --- Combined Update for New Order --- */
+    const updateOrderBtn = document.getElementById("update-order-btn");
     const addBalanceAmount = document.getElementById("add-balance-amount");
+    const addSpAmount = document.getElementById("add-sp-amount");
     const orderNoteInput = document.getElementById("order-note");
     
-    if (addBalanceBtn) {
-        addBalanceBtn.addEventListener("click", async () => {
-            if (!activeCustomer) { alert("No customer selected"); return; }
+    if (updateOrderBtn) {
+        updateOrderBtn.addEventListener("click", async () => {
+            if (!activeCustomer) { 
+                alert("No customer selected"); 
+                return; 
+            }
             
-            const amount = parseFloat(addBalanceAmount.value);
-            if (!amount || amount <= 0) { alert("Please enter a valid amount"); return; }
+            const balanceAmount = parseFloat(addBalanceAmount.value) || 0;
+            const spAmount = parseFloat(addSpAmount.value) || 0;
+            
+            if (balanceAmount <= 0 && spAmount <= 0) { 
+                alert("Please enter a valid amount for either Balance or SP or both"); 
+                return; 
+            }
             
             // Get the note text or use a default message
-            const noteText = orderNoteInput.value.trim() || "Balance Not Paid";
+            const noteText = orderNoteInput.value.trim() || "New Order Received";
             
-            await supabaseFetch("/rest/v1/customer_activities", {
-                method: "POST",
-                headers: { Prefer: "return=representation" },
-                body: JSON.stringify({ 
-                    customer_uid: activeCustomer.uid, 
-                    balance_added: amount,
+            try {
+                // Create a single activity entry for both balance and SP
+                const activityPayload = {
+                    customer_uid: activeCustomer.uid,
                     note: noteText
-                }),
-            });
-            
-            // Clear the note input after submission
-            orderNoteInput.value = "";
-            
-            const newBalance = parseFloat(activeCustomer.balance_due) + amount;
-            await supabaseFetch(`/rest/v1/customers?uid=eq.${activeCustomer.uid}`, {
-                method: "PATCH",
-                headers: { Prefer: "return=representation" },
-                body: JSON.stringify({ balance_due: newBalance }),
-            });
-            
-            activeCustomer.balance_due = newBalance;
-            if (customerCurrentBal) customerCurrentBal.textContent = `Balance Not Paid: ₹${newBalance.toFixed(2)}`;
-            addBalanceAmount.value = "";
-            loadHistory();
-        });
-    }
-
-    /* --- Add to SP Due --- */
-    const addSpBtn = document.getElementById("add-sp-btn");
-    const addSpAmount = document.getElementById("add-sp-amount");
-    
-    if (addSpBtn) {
-        addSpBtn.addEventListener("click", async () => {
-            if (!activeCustomer) { alert("No customer selected"); return; }
-            
-            const sp = parseFloat(addSpAmount.value);
-            if (!sp || sp <= 0) { alert("Please enter a valid SP amount"); return; }
-            
-            // Get the SP not used note text or use a default message
-            const noteText = spNotUsedNoteInput.value.trim() || "SP Not Used";
-            
-            await supabaseFetch("/rest/v1/customer_activities", {
-                method: "POST",
-                headers: { Prefer: "return=representation" },
-                body: JSON.stringify({ 
-                    customer_uid: activeCustomer.uid, 
-                    sp_added: sp,
-                    note: noteText
-                }),
-            });
-            
-            // Clear the note input after submission
-            spNotUsedNoteInput.value = "";
-            
-            const newSpDue = parseFloat(activeCustomer.sp_due) + sp;
-            await supabaseFetch(`/rest/v1/customers?uid=eq.${activeCustomer.uid}`, {
-                method: "PATCH",
-                headers: { Prefer: "return=representation" },
-                body: JSON.stringify({ sp_due: newSpDue }),
-            });
-            
-            activeCustomer.sp_due = newSpDue;
-            if (customerCurrentSp) customerCurrentSp.textContent = `SP Not Used: ${newSpDue.toFixed(4)}`;
-            addSpAmount.value = "";
-            loadHistory();
+                };
+                
+                // Add balance and SP to the payload if they have values
+                if (balanceAmount > 0) {
+                    activityPayload.balance_added = balanceAmount;
+                }
+                if (spAmount > 0) {
+                    activityPayload.sp_added = spAmount;
+                }
+                
+                // Create the activity entry
+                await supabaseFetch("/rest/v1/customer_activities", {
+                    method: "POST",
+                    headers: { Prefer: "return=representation" },
+                    body: JSON.stringify(activityPayload)
+                });
+                
+                // Update customer's balance and SP in a single operation
+                const updatePayload = {};
+                if (balanceAmount > 0) {
+                    const newBalance = parseFloat(activeCustomer.balance_due) + balanceAmount;
+                    updatePayload.balance_due = newBalance;
+                    activeCustomer.balance_due = newBalance;
+                    if (customerCurrentBal) {
+                        customerCurrentBal.textContent = `₹${newBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    }
+                    addBalanceAmount.value = "";
+                }
+                
+                if (spAmount > 0) {
+                    const newSpDue = parseFloat(activeCustomer.sp_due) + spAmount;
+                    updatePayload.sp_due = newSpDue;
+                    activeCustomer.sp_due = newSpDue;
+                    if (customerCurrentSp) {
+                        customerCurrentSp.textContent = newSpDue.toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+                    }
+                    addSpAmount.value = "";
+                }
+                
+                // Only update the customer if there's something to update
+                if (Object.keys(updatePayload).length > 0) {
+                    await supabaseFetch(`/rest/v1/customers?uid=eq.${activeCustomer.uid}`, {
+                        method: "PATCH",
+                        headers: { Prefer: "return=representation" },
+                        body: JSON.stringify(updatePayload)
+                    });
+                }
+                
+                orderNoteInput.value = "";
+                loadHistory();
+                
+            } catch (error) {
+                console.error("Error updating order:", error);
+                alert("An error occurred while updating the order. Please try again.");
+            }
         });
     }
 });
