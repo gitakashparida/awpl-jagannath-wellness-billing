@@ -659,6 +659,7 @@ h2::after {
     font-size: 14px;
     display: inline-block;
     vertical-align: middle;
+    color: var(--secondary-800);
 }
 
 .button-column input[type="number"] {

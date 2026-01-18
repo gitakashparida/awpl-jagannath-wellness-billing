@@ -286,6 +286,10 @@ button:active {
 }
 
 .error-message {
+    display: none; /* Hide by default */
+}
+
+.error-message:not(:empty) {
     color: var(--error-700);
     margin-top: var(--space-4);
     font-size: 0.875rem;
