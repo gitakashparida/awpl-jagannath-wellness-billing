@@ -655,7 +655,7 @@ function displayEditableOrder(order) {
         items.forEach((item, index) => {
             const row = document.createElement("div");
             row.style.display = "flex";
-            row.style.justifyContent = "space-between";
+            row.style.justifyContent = "flex-start";
             row.style.alignItems = "center";
             row.style.marginBottom = "10px";
             row.style.padding = "8px";
@@ -664,15 +664,15 @@ function displayEditableOrder(order) {
 
             const nameSpan = document.createElement("span");
             nameSpan.textContent = item.name;
-            nameSpan.style.flex = "1";
+            nameSpan.style.flex = "none";
             nameSpan.style.minWidth = "150px";
+            nameSpan.style.marginRight = "200px";
 
             const qtyInput = document.createElement("input");
             qtyInput.type = "number";
             qtyInput.min = "0";
             qtyInput.value = item.quantity;
             qtyInput.style.width = "90px";
-            qtyInput.style.marginLeft = "20px";
             qtyInput.style.padding = "6px";
             qtyInput.style.fontSize = "14px";
             qtyInput.style.border = "1px solid #ccc";
