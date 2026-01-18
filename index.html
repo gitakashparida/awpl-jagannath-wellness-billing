@@ -11,6 +11,13 @@
 <body>
     <header>
         <div class="header-content">
+            <button id="hamburger-btn" class="hamburger-btn" title="Menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
             <h1>** Jagannath Wellness - Odisha's top AWPL Franchise **</h1>
             <button id="logout-btn" class="logout-btn" title="Logout">Logout
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -21,57 +28,86 @@
             </button>
         </div>
     </header>
-<h1>JW - Billing Dashboard</h1>
-<input type="text" id="customer-name" placeholder="Enter customer name" autocomplete="off" />
-<input type="text" id="product-search" placeholder="Search products" autocomplete="off" />
-<input type="number" id="product-quantity" placeholder="Enter quantity"/>
-<h2>     </h2>
-<button id="add-product">Add to cart</button>
+    
+    <!-- Navigation Menu -->
+    <div id="nav-menu" class="nav-menu">
+        <div class="nav-menu-content">
+            <h3>Navigate to Section</h3>
+            <div class="nav-switches">
+                <label class="nav-switch">
+                    <input type="radio" name="section" value="billing" checked>
+                    <span class="nav-switch-label">Billing Dashboard</span>
+                </label>
+                <label class="nav-switch">
+                    <input type="radio" name="section" value="customer">
+                    <span class="nav-switch-label">Customer Management</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Overlay -->
+    <div id="nav-overlay" class="nav-overlay"></div>
+<!-- Billing Dashboard Section -->
+    <div id="billing-section" class="section-content">
+        <h1>JW - Billing Dashboard</h1>
+        <input type="text" id="customer-name" placeholder="Enter customer name" autocomplete="off" />
+        <div style="display: flex; gap: 8px; margin-bottom: 1px; margin-left: 40px; align-items: center;">
+          <input type="text" id="product-search" placeholder="Search Products" autocomplete="off" />
+          <input type="number" id="product-quantity" placeholder="Quantity"/>
+          <button id="add-product">Add to cart</button>
+        </div>
 <div id="dropdown" class="dropdown"></div>
 
 <h2>Order Summary</h2>
-<div id="order-summary" class="order-summary"></div>
-<p style="font-size: 12px; color: #555;">Click "Remove from Cart" to delete a product from the cart before placing the order.</p>
-<div id="total-cost" class="total-cost">Total Cost: 0</div>
-<div id="total-sp" class="total-sp">Total SP: 0</div>
+<div id="order-summary" class="order-summary" style="margin-left: 40px;"></div>
+<p style="font-size: 12px; color: #555; margin-left: 40px;">Click "Remove from Cart" to delete a product from the cart before placing the order.</p>
+<div id="total-cost" class="total-cost" style="margin-left: 40px;"></div>
+<div id="total-sp" class="total-sp" style="margin-left: 40px;"></div>
 <!-- Place Order Button -->
 <button id="place-order">Place Order</button>
 
-<h2>Edit Existing Order</h2>
-<input type="number" id="edit-order-number" placeholder="Enter order number" />
-<h2>     </h2>
-<button id="fetch-order-to-edit">Edit Order</button>
+<div style="display: flex; gap: 40px; margin-bottom: 30px; align-items: flex-start; margin-left: 40px;">
+  <!-- Edit Order Section -->
+  <div style="flex: 1;">
+    <h2 style="margin-left: -2px;">Edit Existing Order</h2>
+    <input type="number" id="edit-order-number" placeholder="Enter Order Number" style="margin: 0 auto" />
+    <button id="fetch-order-to-edit" style="display: block; margin-top: 10px;">Edit Order</button>
+  </div>
 
-<div id="edit-order-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none;">
+  <!-- Download Order Details Section -->
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+    <h2>Download and Print Order</h2>
+    <input type="number" id="order-number" placeholder="Enter Order Number" autocomplete="off" style="display: block; margin: 0 auto 10px;" />
+    <button id="download-order-details" style="display: block; margin: 0 auto;">Download & Print</button>
+  </div>
+</div>
+
+<div id="edit-order-section" style="margin-top: 20px; padding: 15px 15px 15px 40px; background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none;">
   <h3 style="margin-top: 0; color: #2c3e50; border-bottom: 1px solid #dee2e6; padding-bottom: 10px;">Editing Order #<span id="editing-order-number"></span></h3>
   <div id="edit-order-summary" class="order-summary" style="margin-bottom: 15px;"></div>
   <div id="edit-total-cost" class="total-cost" style="font-weight: bold; margin: 10px 0;"></div>
   <div id="edit-total-sp" class="total-sp" style="font-weight: bold; margin-bottom: 15px;"></div>
   <div style="display: flex; gap: 10px;">
-    <button id="save-edited-order" style="flex: 1; background-color: #28a745;">Save Changes</button>
-    <button id="cancel-edit" style="flex: 1; background-color: #dc3545;">Cancel</button>
+    <button id="save-edited-order" style="background-color: #28a745; width: 18%;">Save</button>
+    <button id="cancel-edit" style="background-color: #dc3545; width: 18%;">Cancel</button>
   </div>
 </div>
 
 
-<h2>     </h2>
-<input type="number" id="order-number" placeholder="Enter order number" autocomplete="off" />
-<h2>     </h2>
-<button id="download-order-details">Download Order Details</button>
-
 <!-- Add New Product Section -->
 <h2>Add New Product</h2>
-<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
-  <input type="text" id="new-product-name" placeholder="Product Name" />
-  <input type="number" id="new-product-price" placeholder="Price" />
-  <input type="number" id="new-product-mrp" placeholder="MRP" />
-  <input type="number" id="new-product-sp" placeholder="SP" />
+<div style="display: flex; gap: 10px; margin-bottom: 10px; margin-left: 40px; align-items: center;">
+  <input type="text" id="new-product-name" placeholder="Product Name" style="width: 300px;" />
+  <input type="number" id="new-product-price" placeholder="Price" style="width: 80px;" />
+  <input type="number" id="new-product-mrp" placeholder="MRP" style="width: 80px;" />
+  <input type="number" id="new-product-sp" placeholder="SP" style="width: 80px;" />
 </div>
 <button id="add-new-product">Add Product</button>
 
 <!-- Delete Product Section -->
 <h2>Delete a Product</h2>
-<input type="text" id="delete-product-input" placeholder="Type product name to delete" autocomplete="off" style="width: 400px; height: 30px;" />
+<input type="text" id="delete-product-input" placeholder="Type product name to delete" autocomplete="off" style="width: 30%; margin-left: 40px;" />
 
 <div id="delete-product-dropdown" class="dropdown"></div>
 
@@ -89,29 +125,32 @@
 
 <!-- Display Last 50  approved Orders -->
 <div id="order-history"></div>
+    </div> <!-- Close billing-section -->
 
     <hr />
-    <h1>JW - Customer Management</h1>
+    
+    <!-- Customer Management Section -->
+    <div id="customer-section" class="section-content" style="display: none;">
+        <h1>JW - Customer Management</h1>
 
     <!-- Add new customer -->
-    <div style="margin-bottom:12px;">
-        <input type="text" id="new-customer-name" placeholder="Customer name" />
-        <input type="text" id="new-customer-phone" placeholder="Phone (optional)" />
-        <input type="number" id="new-customer-balance" placeholder="Balance Not Paid (₹)" step="0.01" />
-        <input type="number" id="new-customer-sp" placeholder="SP Due" step="0.0001" />
-        <h2>     </h2>
-        <button id="add-customer-btn">Add Customer</button>
+    <div style="margin-bottom:12px; margin-left:40px;">
+        <input type="text" id="new-customer-name" placeholder="Customer name" style="width: 30%; margin-right: 10px;" />
+        <input type="text" id="new-customer-phone" placeholder="Phone (optional)" style="width: 20%; margin-right: 10px;" />
+        <input type="number" id="new-customer-balance" placeholder="Balance Not Paid (₹)" step="0.01" style="width: 15%; margin-right: 10px;" />
+        <input type="number" id="new-customer-sp" placeholder="SP Due" step="0.01" style="width: 5%; margin-right: 10px;" />
+        <button id="add-customer-btn" style="margin-top: 10px;">Add Customer</button>
+        <h2 style="text-decoration: underline; margin-top: 5px;">     </h2>
     </div>
 
     <!-- Search + summary -->
-    <div style="margin-bottom:12px;">
-        <input type="text" id="customer-search" placeholder="Enter name or phone" autocomplete="off" />
-        <h2>     </h2>
+    <div style="margin-bottom:5px; margin-left:40px;">
+        <h2 style="margin-bottom: 10px;">Load Customer</h2>
+        <input type="text" id="customer-search" placeholder="Load Customer" autocomplete="off" />
         <div id="customer-search-dropdown" class="dropdown"></div>
-        <button id="load-customer-btn">Load Customer</button>
     </div>
 
-    <div id="customer-summary" style="display:none; margin-bottom:20px;">
+    <div id="customer-summary" style="display:none; margin-bottom:20px; margin-left:40px;">
         <h3 id="customer-summary-header" style="margin-bottom: 15px; color: #2c3e50;"></h3>
         <table class="balance-summary">
             <tr>
@@ -125,7 +164,7 @@
     </div>
 
     <!-- Actions -->
-    <div id="customer-activity-panel" style="display:none; margin-bottom:20px;">
+    <div id="customer-activity-panel" style="display:none; margin-bottom:20px; margin-left:40px;">
         <div class="button-columns">
             <div class="button-column">
                 <div style="height: 2px; background-color: #000; margin: 0 0 20px 0;"></div>
@@ -135,22 +174,13 @@
                 <button id="record-payment-btn">Amount Received</button>
                 
                 <h3 class="section-header" style="margin-top: 20px;">SP Used</h3>
-                <input type="number" id="activity-sp-amount" placeholder="SP Used" step="0.0001" />
+                <input type="number" id="activity-sp-amount" placeholder="SP Used" step="0.01" />
                 <input type="text" id="sp-used-note" placeholder="SP Used Note" />
                 <button id="record-sp-btn">SP Used</button>
                 
-                <div style="height: 2px; background-color: #000; margin: 25px 0;"></div>
-                
-                <h3 class="section-header" style="margin-top: 25px;">Advance Payment Received</h3>
-                <input type="number" id="advance-payment-amount" placeholder="Advance Payment (₹)" step="0.01" />
-                <input type="text" id="advance-payment-note" placeholder="Advance Payment Note" />
-                <button id="record-advance-payment-btn" class="blue-btn">Record Advance Payment</button>
-            </div>
-            <div class="button-column">
-                <div style="height: 2px; background-color: #000; margin: 0 0 20px 0;"></div>
                 <h3 class="section-header">Cost of Products</h3>
                 <input type="number" id="add-balance-amount" placeholder="Balance Not Paid (₹)" step="0.01" />
-                <input type="number" id="add-sp-amount" placeholder="SP Not Used" step="0.0001" />
+                <input type="number" id="add-sp-amount" placeholder="SP Not Used" step="0.01" />
                 <input type="text" id="order-note" placeholder="Order Note" />
                 <button id="update-order-btn" class="red-btn">Update SP and Balance for New Order</button>
             </div>
@@ -158,10 +188,11 @@
     </div>
 
     <!-- History -->
-    <h4>Activity History</h4>
-    <div class="table-container">
+    <h4 style="margin-left: 40px;">Activity History</h4>
+    <div class="table-container" style="margin-left: 40px;">
         <div id="customer-activity-history"></div>
     </div>
+    </div> <!-- Close customer-section -->
 
 
 <script src="app.js"></script>

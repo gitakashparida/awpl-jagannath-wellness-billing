@@ -121,35 +121,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 const div = document.createElement("div");
                 div.className = "dropdown-item";
                 div.textContent = `${c.name}${c.phone ? " (" + c.phone + ")" : ""}`;
-                div.addEventListener("click", () => {
+                div.addEventListener("click", async () => {
                     customerSearch.value = c.name;
                     customerSearch.dataset.uid = c.uid;
                     customerSearchDropdown.style.display = "none";
+                    
+                    // Auto-load customer details
+                    const uid = c.uid;
+                    const res = await supabaseFetch(`/rest/v1/customers?uid=eq.${uid}&select=*`);
+                    const arr = await res.json();
+                    activeCustomer = arr[0];
+                    if (!activeCustomer) return;
+
+                    if (customerSummary) customerSummary.style.display = "block";
+                    if (customerActivityPanel) customerActivityPanel.style.display = "block";
+                    if (customerSummaryHeader) customerSummaryHeader.textContent = activeCustomer.name;
+                    if (customerCurrentBal) customerCurrentBal.textContent = `₹${parseFloat(activeCustomer.balance_due).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    if (customerCurrentSp) customerCurrentSp.textContent = parseFloat(activeCustomer.sp_due).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    loadHistory();
                 });
                 customerSearchDropdown.appendChild(div);
             });
             customerSearchDropdown.style.display = list.length ? "block" : "none";
-        });
-    }
-
-    /* --- Load customer + history --- */
-    if (loadCustomerBtn) {
-        loadCustomerBtn.addEventListener("click", async () => {
-            const uid = customerSearch.dataset.uid;
-            if (!uid) { alert("Pick from search dropdown"); return; }
-
-            const res = await supabaseFetch(`/rest/v1/customers?uid=eq.${uid}&select=*`);
-            const arr = await res.json();
-            activeCustomer = arr[0];
-            if (!activeCustomer) return;
-
-            if (customerSummary) customerSummary.style.display = "block";
-            if (customerActivityPanel) customerActivityPanel.style.display = "block";
-            if (customerSummaryHeader) customerSummaryHeader.textContent = activeCustomer.name;
-            if (customerCurrentBal) customerCurrentBal.textContent = `₹${parseFloat(activeCustomer.balance_due).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            if (customerCurrentSp) customerCurrentSp.textContent = parseFloat(activeCustomer.sp_due).toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-
-            loadHistory();
         });
     }
 
@@ -209,9 +203,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const activitiesWithBalances = sortedActs.map(activity => {
                 const activityCopy = { ...activity };
                 
-                // Store the balance after this transaction
+                // Store the balance after this transaction with 2 decimal precision
                 activityCopy.updated_balance = runningBalance.toFixed(2);
-                activityCopy.updated_sp_due = runningSpDue.toFixed(4);
+                activityCopy.updated_sp_due = runningSpDue.toFixed(2);
                 
                 // Now adjust the running balance to what it was before this transaction
                 if (activity.balance_reduced) {
@@ -262,10 +256,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td>${activity.note || '-'}</td>
                         <td class="text-right">${activity.balance_added ? '₹' + parseFloat(activity.balance_added).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}</td>
                         <td class="text-right">${activity.balance_reduced ? '₹' + parseFloat(activity.balance_reduced).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}</td>
-                        <td class="text-right">${activity.sp_added ? parseFloat(activity.sp_added).toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : '-'}</td>
-                        <td class="text-right">${activity.sp_reduced ? parseFloat(activity.sp_reduced).toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : '-'}</td>
+                        <td class="text-right">${activity.sp_added ? parseFloat(activity.sp_added).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}</td>
+                        <td class="text-right">${activity.sp_reduced ? parseFloat(activity.sp_reduced).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}</td>
                         <td class="text-right">₹${parseFloat(activity.updated_balance).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td class="text-right">${parseFloat(activity.updated_sp_due).toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+                        <td class="text-right">${parseFloat(activity.updated_sp_due).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     </tr>
                 `;
             });
@@ -296,7 +290,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const paymentNoteInput = document.getElementById("payment-note");
     const spUsedNoteInput = document.getElementById("sp-used-note");
     const spNotUsedNoteInput = document.getElementById("sp-notused-note");
-    const advancePaymentNoteInput = document.getElementById("advance-payment-note");
     
     /* --- Record payment --- */
     if (recordPaymentBtn) {
@@ -336,47 +329,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* --- Record Advance Payment --- */
-    const recordAdvancePaymentBtn = document.getElementById("record-advance-payment-btn");
-    const advancePaymentAmount = document.getElementById("advance-payment-amount");
-    
-    if (recordAdvancePaymentBtn) {
-        recordAdvancePaymentBtn.addEventListener("click", async () => {
-            if (!activeCustomer) { alert("No customer selected"); return; }
-            
-            const amt = parseFloat(advancePaymentAmount.value);
-            if (!amt || amt <= 0) { alert("Please enter a valid amount"); return; }
-            
-            // Get the advance payment note text or use the default message
-            const noteText = advancePaymentNoteInput.value.trim() || "Advance Payment Received";
-            
-            await supabaseFetch("/rest/v1/customer_activities", {
-                method: "POST",
-                headers: { Prefer: "return=representation" },
-                body: JSON.stringify({ 
-                    customer_uid: activeCustomer.uid, 
-                    balance_reduced: amt,
-                    note: noteText
-                }),
-            });
-            
-            // Clear the note input after submission
-            advancePaymentNoteInput.value = "";
-            
-            const newBalance = parseFloat(activeCustomer.balance_due) - amt;
-            await supabaseFetch(`/rest/v1/customers?uid=eq.${activeCustomer.uid}`, {
-                method: "PATCH",
-                headers: { Prefer: "return=representation" },
-                body: JSON.stringify({ balance_due: newBalance }),
-            });
-            
-            activeCustomer.balance_due = newBalance;
-            if (customerCurrentBal) customerCurrentBal.textContent = `₹${newBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            advancePaymentAmount.value = "";
-            loadHistory();
-        });
-    }
-
     /* --- Record SP availed --- */
     if (recordSpBtn) {
         recordSpBtn.addEventListener("click", async () => {
@@ -409,7 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             
             activeCustomer.sp_due = newSpDue;
-            if (customerCurrentSp) customerCurrentSp.textContent = newSpDue.toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+            if (customerCurrentSp) customerCurrentSp.textContent = newSpDue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             spAmount.value = "";
             loadHistory();
         });
@@ -478,7 +430,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     updatePayload.sp_due = newSpDue;
                     activeCustomer.sp_due = newSpDue;
                     if (customerCurrentSp) {
-                        customerCurrentSp.textContent = newSpDue.toLocaleString('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+                        customerCurrentSp.textContent = newSpDue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     }
                     addSpAmount.value = "";
                 }
