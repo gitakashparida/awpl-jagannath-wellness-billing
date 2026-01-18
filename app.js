@@ -143,19 +143,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const item = document.createElement("div");
             item.style.display = "flex";
-            item.style.justifyContent = "space-between";
+            item.style.justifyContent = "flex-start";
             item.style.alignItems = "center";
-            item.style.marginBottom = "4px";
+            item.style.marginBottom = "8px";
             item.style.fontSize = "14px";
+            item.style.gap = "40px";
 
             const infoSpan = document.createElement("span");
-            infoSpan.textContent = `${product.name} (x${product.quantity}) - Rs. ${itemCost} (SP: ${itemSp})`;
+            infoSpan.textContent = `${product.name} (x${product.quantity}) - Rs. ${itemCost} (SP: ${itemSp.toFixed(2)})`;
 
             const removeBtn = document.createElement("button");
             removeBtn.textContent = "Remove from Cart";
-            removeBtn.style.fontSize = "15px";
-            removeBtn.style.padding = "2px 6px";
-            removeBtn.style.marginLeft = "300px";
+            removeBtn.style.fontSize = "12px";
+            removeBtn.style.padding = "4px 8px";
+            removeBtn.style.marginLeft = "0px";
             removeBtn.addEventListener("click", () => {
                 selectedProducts.splice(index, 1);
                 updateOrderSummary();
@@ -166,8 +167,8 @@ document.addEventListener("DOMContentLoaded", () => {
             orderSummary.appendChild(item);
         });
 
-        totalCostElement.textContent = `Total Cost: Rs. ${totalCost}`;
-        totalSpElement.textContent = `Total SP: ${totalSp}`;
+        totalCostElement.textContent = `Total Cost: Rs. ${totalCost.toFixed(2)}`;
+        totalSpElement.textContent = `Total SP: ${totalSp.toFixed(2)}`;
     }
 
     // Handle Add button to Cart click
@@ -228,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             const amount = document.createElement("div");
                             amount.className = "order-amount";
-                            amount.textContent = `₹${order.total_cost} (SP: ${order.total_sp})`;
+                            amount.textContent = `₹${parseFloat(order.total_cost).toFixed(2)} (SP: ${parseFloat(order.total_sp).toFixed(2)})`;
 
                             const meta = document.createElement("div");
                             meta.className = "order-meta";
@@ -655,16 +656,27 @@ function displayEditableOrder(order) {
             const row = document.createElement("div");
             row.style.display = "flex";
             row.style.justifyContent = "space-between";
-            row.style.marginBottom = "6px";
+            row.style.alignItems = "center";
+            row.style.marginBottom = "10px";
+            row.style.padding = "8px";
+            row.style.backgroundColor = "#f9f9f9";
+            row.style.borderRadius = "4px";
 
             const nameSpan = document.createElement("span");
             nameSpan.textContent = item.name;
+            nameSpan.style.flex = "1";
+            nameSpan.style.minWidth = "150px";
 
             const qtyInput = document.createElement("input");
             qtyInput.type = "number";
             qtyInput.min = "0";
             qtyInput.value = item.quantity;
-            qtyInput.style.width = "60px";
+            qtyInput.style.width = "90px";
+            qtyInput.style.marginLeft = "20px";
+            qtyInput.style.padding = "6px";
+            qtyInput.style.fontSize = "14px";
+            qtyInput.style.border = "1px solid #ccc";
+            qtyInput.style.borderRadius = "4px";
             qtyInput.classList.add("edit-qty");
 
             qtyInput.setAttribute("data-price", item.price);
@@ -681,13 +693,24 @@ function displayEditableOrder(order) {
             const removeBtn = document.createElement("button");
             removeBtn.textContent = "❌";
             removeBtn.style.fontSize = "10px";
-            removeBtn.style.marginLeft = "10px";
+            removeBtn.style.marginLeft = "8px";
+            removeBtn.style.padding = "2px 6px";
+            removeBtn.style.backgroundColor = "#e74c3c";
+            removeBtn.style.color = "white";
+            removeBtn.style.border = "none";
+            removeBtn.style.borderRadius = "4px";
+            removeBtn.style.cursor = "pointer";
+            removeBtn.style.minWidth = "28px";
+            removeBtn.style.height = "28px";
             removeBtn.addEventListener("click", () => {
                 items.splice(index, 1);
                 renderUI();  // re-render after removing
             });
 
             const itemGroup = document.createElement("div");
+            itemGroup.style.display = "flex";
+            itemGroup.style.alignItems = "center";
+            itemGroup.style.width = "100%";
             itemGroup.appendChild(nameSpan);
             itemGroup.appendChild(qtyInput);
             itemGroup.appendChild(removeBtn);
@@ -994,7 +1017,21 @@ function saveEditedOrder(orderUid) {
                                     doc.setFont('helvetica', 'bold');
                                     doc.text('Thank you for visiting. Hope to see you again.', 105, y, { align: 'center' });
                                     doc.setFont('helvetica', 'normal');
+
+                                    // Save the PDF locally
                                     doc.save(fileName);
+
+                                    // Create a blob and print the PDF
+                                    const pdfBlob = doc.output('blob');
+                                    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+                                    // Open PDF in a new window and print
+                                    const printWindow = window.open(pdfUrl, '_blank');
+                                    printWindow.onload = function() {
+                                        setTimeout(() => {
+                                            printWindow.print();
+                                        }, 250);
+                                    };
 
                    } catch (error) {
                        console.error("Error fetching order:", error);
@@ -1002,3 +1039,54 @@ function saveEditedOrder(orderUid) {
             }
         }
     });
+
+// Hamburger Menu Functionality
+(function() {
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const navMenu = document.getElementById('nav-menu');
+    const navOverlay = document.getElementById('nav-overlay');
+    const sectionRadios = document.querySelectorAll('input[name="section"]');
+    const billingSection = document.getElementById('billing-section');
+    const customerSection = document.getElementById('customer-section');
+
+    console.log('Hamburger menu elements:', { hamburgerBtn, navMenu, navOverlay });
+
+    // Toggle menu
+    if (hamburgerBtn) {
+        hamburgerBtn.addEventListener('click', function() {
+            console.log('Hamburger clicked!');
+            navMenu.classList.toggle('active');
+            navOverlay.classList.toggle('active');
+        });
+    }
+
+    // Close menu when clicking overlay
+    if (navOverlay) {
+        navOverlay.addEventListener('click', function() {
+            navMenu.classList.remove('active');
+            navOverlay.classList.remove('active');
+        });
+    }
+
+    // Handle section switching
+    sectionRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            console.log('Section changed to:', this.value);
+            if (this.value === 'billing') {
+                billingSection.style.display = 'block';
+                customerSection.style.display = 'none';
+                // Scroll to top when switching to billing
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (this.value === 'customer') {
+                billingSection.style.display = 'none';
+                customerSection.style.display = 'block';
+                // Scroll to top when switching to customer management
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            // Close menu after selection
+            navMenu.classList.remove('active');
+            navOverlay.classList.remove('active');
+        });
+    });
+})();
