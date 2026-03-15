@@ -853,15 +853,18 @@ function saveEditedOrder(orderUid) {
 
         const customerName = customerNameInput.value.trim() || "Anonymous Customer";
 
-        // Get current time in IST (UTC+5:30)
+        // Get current date and time in IST format
         const now = new Date();
         const istOffset = 330; // IST is UTC+5:30 = 330 minutes
-        const istTime = new Date(now.getTime() + (istOffset * 60 * 1000));
+        const istDateTime = new Date(now.getTime() + (istOffset * 60 * 1000));
+        
+        // Format as ISO string with IST time
+        const orderDateTime = istDateTime.toISOString();
         
         const orderData = {
             customer_name: customerNameInput.value.trim(),
             product_names: selectedProducts.map(p => `${p.name} x Qty: ${p.quantity} x Price: ${p.price} x SP: ${p.sp}`).join(", "),
-            order_date: istTime.toISOString(),
+            order_date: orderDateTime,
             total_cost: selectedProducts.reduce((sum, p) => sum + p.price * p.quantity, 0),
             total_sp: selectedProducts.reduce((sum, p) => sum + p.sp * p.quantity, 0),
             phoneNumber: '7381716240'  // Default phone number
@@ -920,20 +923,17 @@ function saveEditedOrder(orderUid) {
 
                        const order = orders[0];
                        const orderItems = order.product_names.split(", ");
-                       const orderDate = new Date(order.order_date);
-                       // Convert to IST by adding 5.5 hours (330 minutes)
-                       orderDate.setMinutes(orderDate.getMinutes() + 330);
-                       // Format the date
-                       const formattedDate = orderDate.toLocaleString('en-IN', {
+                       // Parse the stored IST datetime and format for display
+                       const orderDateTime = new Date(order.order_date);
+                       // Format with IST timezone (single conversion, no manual offset)
+                       const formattedDateTime = orderDateTime.toLocaleString('en-IN', {
                            year: 'numeric',
                            month: 'long',
                            day: 'numeric',
                            hour: '2-digit',
                            minute: '2-digit',
                            second: '2-digit',
-                           hour12: true,
-                           timeZone: 'Asia/Kolkata',
-                           timeZoneName: undefined
+                           hour12: true
                        });
 
                        const { jsPDF } = window.jspdf;
@@ -969,7 +969,7 @@ function saveEditedOrder(orderUid) {
                                     doc.setFontSize(currentSize);
                                     doc.setFont('helvetica', 'normal');
                                     y += 5;
-                                    doc.text(`Order Date: ${orderDate}`, 20, y);
+                                    doc.text(`Order Date: ${formattedDateTime}`, 20, y);
                                     y += 5;
                                     doc.text("Order Details:", 20, y);
                                     y += 5;
