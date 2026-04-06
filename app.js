@@ -225,9 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             wrapper.className = "order-item";
 
                             const header = document.createElement("h4");
-                            // Use order_number if available, otherwise fall back to uid
-                            const displayOrderNumber = order.order_number || order.uid;
-                            header.textContent = `#${displayOrderNumber} - ${order.customer_name}`;
+                            header.textContent = `#${order.uid} - ${order.customer_name}`;
 
                             const amount = document.createElement("div");
                             amount.className = "order-amount";
@@ -273,10 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             deleteBtn.addEventListener("click", (e) => {
                                 e.stopPropagation();
-                                // Use order_number if available, otherwise fall back to uid for display
-                                const displayOrderNumber = order.order_number || order.uid;
-                                // Always use uid for deletion since it's the primary key
-                                if (confirm(`Are you sure you want to delete order #${displayOrderNumber}?`)) {
+                                if (confirm(`Are you sure you want to delete order #${order.uid}?`)) {
                                     fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${order.uid}`, {
                                         method: "DELETE",
                                         headers: {
@@ -470,14 +465,13 @@ document.addEventListener("click", (event) => {
 fetchOrderToEditBtn.addEventListener("click", async () => {
     const orderId = editOrderNumberInput.value.trim();
 
-    if (!orderId) {
+    if (!orderId || isNaN(orderId)) {
         alert("Please enter a valid order number.");
         return;
     }
 
     try {
-        // First try to find by order_number (new format)
-        let response = await fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?order_number=eq.${orderId}`, {
+        const response = await fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${orderId}`, {
             headers: {
                 apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
                 Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
@@ -485,19 +479,7 @@ fetchOrderToEditBtn.addEventListener("click", async () => {
             }
         });
 
-        let data = await response.json();
-        
-        // If not found by order_number, try by uid (for old orders)
-        if (data.length === 0 && !isNaN(orderId)) {
-            response = await fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${orderId}`, {
-                headers: {
-                    apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
-                    Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
-                    "Content-Type": "application/json",
-                }
-            });
-            data = await response.json();
-        }
+        const data = await response.json();
 
         if (data.length === 0) {
             alert("No such order found.");
@@ -518,8 +500,7 @@ function displayEditableOrder(order) {
     // Display the order number being edited
     const orderNumberSpan = document.getElementById("editing-order-number");
     if (orderNumberSpan) {
-        const displayOrderNumber = order.order_number || order.uid;
-        orderNumberSpan.textContent = displayOrderNumber;
+        orderNumberSpan.textContent = order.uid;
     }
     
     // Set up cancel button
@@ -895,20 +876,15 @@ function saveEditedOrder(orderUid) {
                 apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
                 Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8`,
                 "Content-Type": "application/json",
-                "Prefer": "return=representation"
             },
             body: JSON.stringify(orderData),
         })
             .then((response) => {
                 if (response.status === 201) {
-                    return response.json().then((data) => {
-                        const newOrder = data[0];
-                        const displayOrderNumber = newOrder.order_number || newOrder.uid;
-                        alert(`Order placed successfully! Order Number: #${displayOrderNumber}`);
-                        selectedProducts = [];
-                        customerNameInput.value = "";
-                        updateOrderSummary();
-                    });
+                    alert("Order placed successfully!");
+                    selectedProducts = [];
+                    customerNameInput.value = "";
+                    updateOrderSummary();
                 } else {
                     throw new Error(`Failed to place order. Status: ${response.status}`);
                 }
@@ -924,14 +900,13 @@ function saveEditedOrder(orderUid) {
                async function downloadOrderFile() {
                    const orderId = orderNumberInput.value.trim();
 
-                   if (!orderId) {
+                   if (!orderId || isNaN(orderId)) {
                                alert("Please enter a valid order number.");
                                return;
                    }
 
                    try {
-                       // First try to find by order_number (new format)
-                       let response = await fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?order_number=eq.${orderId}`,{
+                       const response = await fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${orderId}`,{
                            headers: {
                                "Content-Type": "application/json",
                                "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
@@ -939,19 +914,7 @@ function saveEditedOrder(orderUid) {
                            }
                        });
 
-                       let orders = await response.json();
-                       
-                       // If not found by order_number, try by uid (for old orders)
-                       if (orders.length === 0 && !isNaN(orderId)) {
-                           response = await fetch(`https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/orders?uid=eq.${orderId}`,{
-                               headers: {
-                                   "Content-Type": "application/json",
-                                   "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8",
-                                   "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXV1c2x2bmxrYnF6dGJkdXlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMwODQzOSwiZXhwIjoyMDU1ODg0NDM5fQ.oTifqXRyaBFyJReUHWIO21cwNBDd7PbplajanFdhbO8"
-                               }
-                           });
-                           orders = await response.json();
-                       }
+                       const orders = await response.json();
 
                        if (orders.length === 0) {
                            alert("No orders found for this customer.");
@@ -1002,8 +965,7 @@ function saveEditedOrder(orderUid) {
                                     doc.setFont('helvetica', 'bold');
                                     const currentSize = doc.getFontSize();
                                     doc.setFontSize(currentSize + 2);
-                                    const displayOrderNumber = order.order_number || order.uid;
-                                    doc.text(`Bill Number: ${displayOrderNumber}`, 160, y);
+                                    doc.text(`Bill Number: ${order.uid}`, 160, y);
                                     doc.setFontSize(currentSize);
                                     doc.setFont('helvetica', 'normal');
                                     y += 5;
@@ -1049,7 +1011,7 @@ function saveEditedOrder(orderUid) {
                                     doc.setFontSize(8);
                                     doc.text("Pay to | SBI A/c Name: Jagannath Wellness, A/c No.: 40877005106, IFSC: SBIN0017948 | UPI: 7381716240", 20, y);
 
-                                    const fileName = `Order_${order.customer_name}_${displayOrderNumber}.pdf`;
+                                    const fileName = `Order_${order.customer_name}_${order.uid}.pdf`;
                                     y += 10; // Add some space for the thank you message
                                     doc.setFontSize(10);
                                     doc.setFont('helvetica', 'bold');
