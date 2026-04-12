@@ -1048,6 +1048,7 @@ function saveEditedOrder(orderUid) {
     const sectionRadios = document.querySelectorAll('input[name="section"]');
     const billingSection = document.getElementById('billing-section');
     const customerSection = document.getElementById('customer-section');
+    const expenseSection = document.getElementById('expense-section');
 
     console.log('Hamburger menu elements:', { hamburgerBtn, navMenu, navOverlay });
 
@@ -1075,12 +1076,20 @@ function saveEditedOrder(orderUid) {
             if (this.value === 'billing') {
                 billingSection.style.display = 'block';
                 customerSection.style.display = 'none';
+                expenseSection.style.display = 'none';
                 // Scroll to top when switching to billing
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (this.value === 'customer') {
                 billingSection.style.display = 'none';
                 customerSection.style.display = 'block';
+                expenseSection.style.display = 'none';
                 // Scroll to top when switching to customer management
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (this.value === 'expense') {
+                billingSection.style.display = 'none';
+                customerSection.style.display = 'none';
+                expenseSection.style.display = 'block';
+                // Scroll to top when switching to expense tracker
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
             

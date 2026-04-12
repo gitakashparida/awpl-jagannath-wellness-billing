@@ -42,6 +42,10 @@
                     <input type="radio" name="section" value="customer">
                     <span class="nav-switch-label">Customer Management</span>
                 </label>
+                <label class="nav-switch">
+                    <input type="radio" name="section" value="expense">
+                    <span class="nav-switch-label">Expense Tracker</span>
+                </label>
             </div>
         </div>
     </div>
@@ -194,8 +198,57 @@
     </div>
     </div> <!-- Close customer-section -->
 
+    <hr />
+    
+    <!-- Expense Tracker Section -->
+    <div id="expense-section" class="section-content" style="display: none;">
+        <h1>JW - Expense Tracker</h1>
+
+        <!-- Add New Expense -->
+        <div style="margin-bottom: 20px; margin-left: 40px;">
+            <h2>Add New Expense</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="expense-name" placeholder="Expense Name" style="width: 200px;" />
+                <input type="number" id="expense-amount" placeholder="Amount (₹)" step="0.01" style="width: 120px;" />
+                <input type="text" id="expense-category" placeholder="Category (Optional)" style="width: 150px;" />
+                <input type="date" id="expense-date" style="width: 150px;" />
+            </div>
+            <div style="margin-bottom: 10px; margin-left: 0;">
+                <input type="text" id="expense-description" placeholder="Description (Optional)" style="width: 400px;" />
+            </div>
+            <button id="add-expense-btn">Add Expense</button>
+        </div>
+
+        <!-- Search and Delete Expense -->
+        <div style="margin-bottom: 20px; margin-left: 40px;">
+            <h2>Delete Expense</h2>
+            <input type="text" id="delete-expense-input" placeholder="Type expense name to delete" autocomplete="off" style="width: 30%;" />
+            <div id="delete-expense-dropdown" class="dropdown"></div>
+        </div>
+
+        <!-- Expense History -->
+        <div class="expense-history-container" style="margin-left: 40px;">
+            <h2>Expense History</h2>
+            <div class="date-search-container">
+                <input type="date" id="expense-date-search" class="date-picker" />
+                <button id="get-expenses">Get Expenses</button>
+            </div>
+            <p class="hint-text">Leave empty to see the latest 100 expenses, or select a date to filter</p>
+        </div>
+
+        <!-- Display Expenses -->
+        <div id="expense-history"></div>
+
+        <!-- Expense Summary -->
+        <div id="expense-summary" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;">
+            <h3>Expense Summary</h3>
+            <div id="expense-summary-content"></div>
+        </div>
+    </div> <!-- Close expense-section -->
+
 
 <script src="app.js"></script>
 <script src="customer-management.js"></script>
+<script src="expense-tracker.js"></script>
 </body>
 </html>
