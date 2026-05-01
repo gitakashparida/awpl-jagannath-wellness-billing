@@ -38,6 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let totalActivities = 0;
     let activitiesPerPage = 50;
     let dateFilter = { from: null, to: null };
+    
+    // Initialize pagination controls
+    if (paginationButtons) {
+        paginationButtons.style.display = 'none'; // Hide pagination buttons initially
+    }
+    if (paginationInfo) {
+        paginationInfo.textContent = 'No customer selected';
+    }
 
     // Helper for Supabase REST calls
     async function supabaseFetch(path, opts = {}) {
@@ -339,11 +347,13 @@ document.addEventListener("DOMContentLoaded", () => {
         // Update pagination info
         if (totalActivities > 0) {
             paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalActivities} activities`;
+            paginationButtons.style.display = 'flex'; // Show pagination buttons
         } else {
             paginationInfo.textContent = 'No activities found';
+            paginationButtons.style.display = 'none'; // Hide pagination buttons when no activities
         }
         
-        // Update pagination buttons
+        // Clear existing pagination buttons
         paginationButtons.innerHTML = '';
         
         // Previous button
