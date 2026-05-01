@@ -226,23 +226,62 @@
             <div id="delete-expense-dropdown" class="dropdown"></div>
         </div>
 
-        <!-- Expense History -->
+        <!-- Expense History with Date Range Filter -->
         <div class="expense-history-container" style="margin-left: 40px;">
-            <h2>Expense History</h2>
-            <div class="date-search-container">
-                <input type="date" id="expense-date-search" class="date-picker" />
-                <button id="get-expenses">Get Expenses</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2>Expense History</h2>
+                <button id="print-expenses" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold;">🖨️ Print</button>
             </div>
-            <p class="hint-text">Leave empty to see the latest 100 expenses, or select a date to filter</p>
+            
+            <div class="date-range-container" style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+                <div>
+                    <label for="expense-date-from" style="margin-right: 5px;">From:</label>
+                    <input type="date" id="expense-date-from" class="date-picker" />
+                </div>
+                <div>
+                    <label for="expense-date-to" style="margin-right: 5px;">To:</label>
+                    <input type="date" id="expense-date-to" class="date-picker" />
+                </div>
+                <button id="get-expenses" style="background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Filter</button>
+                <button id="clear-filter" style="background-color: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Clear</button>
+            </div>
+            <p class="hint-text">Select date range to filter expenses, or leave empty to see the latest 100 expenses</p>
         </div>
 
-        <!-- Display Expenses -->
-        <div id="expense-history"></div>
-
         <!-- Expense Summary -->
-        <div id="expense-summary" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;">
+        <div id="expense-summary" style="margin: 20px 40px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;">
             <h3>Expense Summary</h3>
             <div id="expense-summary-content"></div>
+        </div>
+
+        <!-- Expenses Table -->
+        <div style="margin: 0 40px;">
+            <table id="expenses-table" style="width: 100%; border-collapse: collapse; display: none;">
+                <thead>
+                    <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                        <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">ID</th>
+                        <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Date</th>
+                        <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Expense Name</th>
+                        <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Category</th>
+                        <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">Amount (₹)</th>
+                        <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Description</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #dee2e6;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="expenses-tbody">
+                </tbody>
+                <tfoot id="expenses-tfoot" style="background-color: #f8f9fa; font-weight: bold; display: none;">
+                    <tr>
+                        <td colspan="4" style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">Total:</td>
+                        <td id="total-amount" style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">₹0.00</td>
+                        <td colspan="2" style="border: 1px solid #dee2e6;"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <div id="no-expenses-message" style="text-align: center; padding: 20px; color: #666; display: none;">
+                No expenses found for the selected criteria.
+            </div>
         </div>
     </div> <!-- Close expense-section -->
 

@@ -10,8 +10,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteExpenseInput = document.getElementById("delete-expense-input");
     const deleteExpenseDropdown = document.getElementById("delete-expense-dropdown");
     const getExpensesBtn = document.getElementById("get-expenses");
-    const expenseDateSearchInput = document.getElementById("expense-date-search");
-    const expenseHistoryElement = document.getElementById("expense-history");
+    const clearFilterBtn = document.getElementById("clear-filter");
+    const printExpensesBtn = document.getElementById("print-expenses");
+    const expenseDateFromInput = document.getElementById("expense-date-from");
+    const expenseDateToInput = document.getElementById("expense-date-to");
+    const expensesTable = document.getElementById("expenses-table");
+    const expensesTbody = document.getElementById("expenses-tbody");
+    const expensesTfoot = document.getElementById("expenses-tfoot");
+    const totalAmountElement = document.getElementById("total-amount");
+    const noExpensesMessage = document.getElementById("no-expenses-message");
     const expenseSummaryElement = document.getElementById("expense-summary");
     const expenseSummaryContent = document.getElementById("expense-summary-content");
 
@@ -126,15 +133,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Load expenses functionality
     getExpensesBtn.addEventListener("click", loadExpenses);
+    clearFilterBtn.addEventListener("click", clearFilter);
+    printExpensesBtn.addEventListener("click", printExpenses);
 
     function loadExpenses() {
-        const selectedDate = expenseDateSearchInput.value.trim();
+        const fromDate = expenseDateFromInput.value.trim();
+        const toDate = expenseDateToInput.value.trim();
         let url = "https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/expenses?select=*&order=expense_date.desc&limit=100";
 
-        if (selectedDate) {
-            const startDate = `${selectedDate}T00:00:00.000Z`;
-            const endDate = `${selectedDate}T23:59:59.999Z`;
+        if (fromDate && toDate) {
+            const startDate = `${fromDate}T00:00:00.000Z`;
+            const endDate = `${toDate}T23:59:59.999Z`;
             url = `https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/expenses?expense_date=gte.${startDate}&expense_date=lte.${endDate}&select=*&order=expense_date.desc&limit=100`;
+        } else if (fromDate) {
+            const startDate = `${fromDate}T00:00:00.000Z`;
+            url = `https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/expenses?expense_date=gte.${startDate}&select=*&order=expense_date.desc&limit=100`;
+        } else if (toDate) {
+            const endDate = `${toDate}T23:59:59.999Z`;
+            url = `https://gfyuuslvnlkbqztbduys.supabase.co/rest/v1/expenses?expense_date=lte.${endDate}&select=*&order=expense_date.desc&limit=100`;
         }
 
         fetch(url, {
@@ -160,14 +176,58 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function clearFilter() {
+        expenseDateFromInput.value = "";
+        expenseDateToInput.value = "";
+        loadExpenses();
+    }
+
+    function printExpenses() {
+        const printContent = document.getElementById('expenses-table').outerHTML;
+        const summaryContent = document.getElementById('expense-summary').outerHTML;
+        const printWindow = window.open('', '_blank');
+        
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Expense Report - Jagannath Wellness</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { text-align: center; color: #2c3e50; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .total-row { font-weight: bold; background-color: #f9f9f9; }
+                        .summary { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                        @media print { body { margin: 10px; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>Jagannath Wellness - Expense Report</h1>
+                    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                    ${summaryContent}
+                    ${printContent}
+                </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        printWindow.print();
+    }
+
     function displayExpenses(expensesList) {
-        expenseHistoryElement.innerHTML = "";
+        expensesTbody.innerHTML = "";
         
         if (expensesList.length === 0) {
-            expenseHistoryElement.textContent = "No expenses found.";
+            expensesTable.style.display = "none";
+            noExpensesMessage.style.display = "block";
             expenseSummaryElement.style.display = "none";
             return;
         }
+
+        expensesTable.style.display = "table";
+        noExpensesMessage.style.display = "none";
+        expensesTfoot.style.display = "table-footer-group";
 
         let totalAmount = 0;
         const categoryTotals = {};
@@ -179,56 +239,47 @@ document.addEventListener("DOMContentLoaded", () => {
                 categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + parseFloat(expense.amount);
             }
 
-            const wrapper = document.createElement("div");
-            wrapper.className = "expense-item";
-            wrapper.style.cssText = "border: 1px solid #ccc; margin-bottom: 10px; border-radius: 5px; background: #f9f9f9; padding: 15px;";
-
-            const header = document.createElement("h4");
-            header.textContent = `#${expense.uid} - ${expense.expense_name}`;
-
-            const amount = document.createElement("div");
-            amount.className = "expense-amount";
-            amount.textContent = `₹${parseFloat(expense.amount).toFixed(2)}`;
-            amount.style.cssText = "font-weight: bold; color: #e74c3c; font-size: 18px; margin: 5px 0;";
-
-            const meta = document.createElement("div");
-            meta.className = "expense-meta";
-            meta.style.cssText = "color: #666; font-size: 14px; margin: 5px 0;";
+            const row = document.createElement("tr");
+            row.style.cssText = "border-bottom: 1px solid #dee2e6;";
             
-            const dateIcon = document.createElement("span");
-            dateIcon.textContent = "🕒";
-            dateIcon.style.fontSize = "0.9em";
+            // ID cell
+            const idCell = document.createElement("td");
+            idCell.textContent = expense.uid;
+            idCell.style.cssText = "padding: 12px; border: 1px solid #dee2e6;";
             
-            const dateText = document.createElement("span");
-            dateText.textContent = new Date(expense.expense_date).toLocaleDateString();
+            // Date cell
+            const dateCell = document.createElement("td");
+            dateCell.textContent = new Date(expense.expense_date).toLocaleDateString();
+            dateCell.style.cssText = "padding: 12px; border: 1px solid #dee2e6;";
             
-            meta.appendChild(dateIcon);
-            meta.appendChild(dateText);
-
-            if (expense.category) {
-                const category = document.createElement("div");
-                category.className = "expense-category";
-                category.textContent = `Category: ${expense.category}`;
-                category.style.cssText = "display: inline-block; background: #3498db; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-left: 10px;";
-                meta.appendChild(category);
-            }
-
-            const description = document.createElement("div");
-            description.className = "expense-description";
-            if (expense.description) {
-                description.textContent = `Description: ${expense.description}`;
-                description.style.cssText = "color: #555; font-style: italic; margin: 5px 0;";
-            }
-
-            const actions = document.createElement("div");
-            actions.className = "expense-actions";
-            actions.style.cssText = "margin-top: 10px;";
-
+            // Name cell
+            const nameCell = document.createElement("td");
+            nameCell.textContent = expense.expense_name;
+            nameCell.style.cssText = "padding: 12px; border: 1px solid #dee2e6; font-weight: 500;";
+            
+            // Category cell
+            const categoryCell = document.createElement("td");
+            categoryCell.textContent = expense.category || "-";
+            categoryCell.style.cssText = "padding: 12px; border: 1px solid #dee2e6;";
+            
+            // Amount cell
+            const amountCell = document.createElement("td");
+            amountCell.textContent = `₹${parseFloat(expense.amount).toFixed(2)}`;
+            amountCell.style.cssText = "padding: 12px; border: 1px solid #dee2e6; text-align: right; font-weight: bold; color: #e74c3c;";
+            
+            // Description cell
+            const descriptionCell = document.createElement("td");
+            descriptionCell.textContent = expense.description || "-";
+            descriptionCell.style.cssText = "padding: 12px; border: 1px solid #dee2e6; max-width: 200px; word-wrap: break-word;";
+            
+            // Actions cell
+            const actionsCell = document.createElement("td");
+            actionsCell.style.cssText = "padding: 12px; border: 1px solid #dee2e6; text-align: center;";
+            
             const deleteBtn = document.createElement("button");
-            deleteBtn.className = "btn-delete";
             deleteBtn.innerHTML = `🗑️ Delete`;
             deleteBtn.title = "Delete Expense";
-            deleteBtn.style.cssText = "background-color: #c0392b; color: black; border: 2px solid #a93226; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);";
+            deleteBtn.style.cssText = "background-color: #c0392b; color: black; border: 2px solid #a93226; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;";
 
             deleteBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -243,13 +294,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     })
                     .then(response => {
                         if (response.ok) {
-                            wrapper.style.animation = 'fadeOut 0.3s ease';
+                            row.style.animation = 'fadeOut 0.3s ease';
                             setTimeout(() => {
-                                wrapper.remove();
-                                // Update totals
-                                const currentTotal = parseFloat(totalAmount);
-                                totalAmount = currentTotal - parseFloat(expense.amount);
-                                updateExpenseSummary(totalAmount, categoryTotals, true, expense.category, expense.amount);
+                                row.remove();
+                                const currentTotal = parseFloat(totalAmountElement.textContent.replace('₹', '').replace(',', ''));
+                                const newTotal = currentTotal - parseFloat(expense.amount);
+                                totalAmountElement.textContent = `₹${newTotal.toFixed(2)}`;
+                                
+                                // Update summary
+                                if (expense.category) {
+                                    categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) - parseFloat(expense.amount);
+                                    if (categoryTotals[expense.category] <= 0) {
+                                        delete categoryTotals[expense.category];
+                                    }
+                                }
+                                updateExpenseSummary(newTotal, categoryTotals);
                             }, 300);
                         } else {
                             throw new Error("Failed to delete expense");
@@ -262,28 +321,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
 
-            actions.appendChild(deleteBtn);
+            actionsCell.appendChild(deleteBtn);
             
-            wrapper.appendChild(header);
-            wrapper.appendChild(amount);
-            wrapper.appendChild(meta);
-            if (expense.description) {
-                wrapper.appendChild(description);
-            }
-            wrapper.appendChild(actions);
+            row.appendChild(idCell);
+            row.appendChild(dateCell);
+            row.appendChild(nameCell);
+            row.appendChild(categoryCell);
+            row.appendChild(amountCell);
+            row.appendChild(descriptionCell);
+            row.appendChild(actionsCell);
             
-            expenseHistoryElement.appendChild(wrapper);
-            
-            // Add animation
-            wrapper.style.opacity = '0';
-            wrapper.style.transform = 'translateY(10px)';
-            setTimeout(() => {
-                wrapper.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                wrapper.style.opacity = '1';
-                wrapper.style.transform = 'translateY(0)';
-            }, 10);
+            expensesTbody.appendChild(row);
         });
 
+        totalAmountElement.textContent = `₹${totalAmount.toFixed(2)}`;
         updateExpenseSummary(totalAmount, categoryTotals);
     }
 
