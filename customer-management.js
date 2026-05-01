@@ -24,8 +24,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const recordSpBtn = document.getElementById("record-sp-btn");
 
     const activityHistoryDiv = document.getElementById("customer-activity-history");
+    const activityDateFromInput = document.getElementById("activity-date-from");
+    const activityDateToInput = document.getElementById("activity-date-to");
+    const filterActivitiesBtn = document.getElementById("filter-activities");
+    const clearActivityFilterBtn = document.getElementById("clear-activity-filter");
+    const paginationControls = document.getElementById("pagination-controls");
+    const paginationInfo = document.getElementById("pagination-info");
+    const paginationButtons = document.getElementById("pagination-buttons");
+    const printActivitiesBtn = document.getElementById("print-activities");
 
     let activeCustomer = null;
+    let currentPage = 1;
+    let totalActivities = 0;
+    let activitiesPerPage = 50;
+    let dateFilter = { from: null, to: null };
 
     // Helper for Supabase REST calls
     async function supabaseFetch(path, opts = {}) {
@@ -147,8 +159,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* --- Load activity history --- */
-    async function loadHistory() {
+    /* --- Load activity history with pagination --- */
+    async function loadHistory(page = 1) {
         if (!activityHistoryDiv) return;
         if (!activeCustomer || !activeCustomer.uid) {
             console.error('No active customer or customer UID is missing');
@@ -156,11 +168,38 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         
+        currentPage = page;
+        
         // Show loading state
         activityHistoryDiv.innerHTML = '<p>Loading activity history...</p>';
         
         try {
-            const url = `/rest/v1/customer_activities?customer_uid=eq.${encodeURIComponent(activeCustomer.uid)}&order=created_at.desc&limit=50`;
+            // Build URL with date filters if they exist
+            let url = `/rest/v1/customer_activities?customer_uid=eq.${encodeURIComponent(activeCustomer.uid)}&order=created_at.desc`;
+            
+            // Add date range filters if specified
+            if (dateFilter.from) {
+                const startDate = new Date(dateFilter.from).toISOString();
+                url += `&created_at=gte.${startDate}`;
+            }
+            if (dateFilter.to) {
+                const endDate = new Date(dateFilter.to + 'T23:59:59.999').toISOString();
+                url += `&created_at=lte.${endDate}`;
+            }
+            
+            // First, get total count for pagination
+            const countUrl = url.replace(/order=[^&]*&?/, '').replace(/&$/, '') + '&select=count';
+            const countRes = await supabaseFetch(countUrl);
+            
+            if (countRes.ok) {
+                const countData = await countRes.json();
+                totalActivities = countData.length > 0 ? countData[0].count : 0;
+            }
+            
+            // Calculate offset for pagination
+            const offset = (page - 1) * activitiesPerPage;
+            url += `&limit=${activitiesPerPage}&offset=${offset}`;
+            
             console.log('Fetching from URL:', url);
             
             const res = await supabaseFetch(url);
@@ -172,7 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     const errorData = await res.json();
                     errorMessage += ` - ${JSON.stringify(errorData)}`;
                 } catch (e) {
-                    // If we can't parse JSON, try to get text
                     try {
                         const errorText = await res.text();
                         if (errorText) errorMessage += ` - ${errorText}`;
@@ -280,10 +318,93 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             activityHistoryDiv.innerHTML = html;
+            
+            // Update pagination controls
+            updatePaginationControls();
+            
         } catch (error) {
             console.error('Error loading activity history:', error);
             activityHistoryDiv.innerHTML = '<p class="error">Error loading activity history. Please try again later.</p>';
         }
+    }
+    
+    /* --- Update pagination controls --- */
+    function updatePaginationControls() {
+        if (!paginationInfo || !paginationButtons) return;
+        
+        const totalPages = Math.ceil(totalActivities / activitiesPerPage);
+        const startItem = (currentPage - 1) * activitiesPerPage + 1;
+        const endItem = Math.min(currentPage * activitiesPerPage, totalActivities);
+        
+        // Update pagination info
+        if (totalActivities > 0) {
+            paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalActivities} activities`;
+        } else {
+            paginationInfo.textContent = 'No activities found';
+        }
+        
+        // Update pagination buttons
+        paginationButtons.innerHTML = '';
+        
+        // Previous button
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = 'Previous';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.style.cssText = 'padding: 5px 10px; margin-right: 5px; border: 1px solid #ccc; background: #f8f9fa; color: black; cursor: pointer;';
+        if (currentPage > 1) {
+            prevBtn.addEventListener('click', () => loadHistory(currentPage - 1));
+        }
+        paginationButtons.appendChild(prevBtn);
+        
+        // Page number buttons (show max 5 pages)
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.textContent = i;
+            pageBtn.disabled = i === currentPage;
+            pageBtn.style.cssText = i === currentPage 
+                ? 'padding: 5px 10px; margin-right: 5px; border: 1px solid #007bff; background: #007bff; color: white; cursor: pointer;'
+                : 'padding: 5px 10px; margin-right: 5px; border: 1px solid #ccc; background: #f8f9fa; color: black; cursor: pointer;';
+            
+            if (i !== currentPage) {
+                pageBtn.addEventListener('click', () => loadHistory(i));
+            }
+            paginationButtons.appendChild(pageBtn);
+        }
+        
+        // Next button
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'Next';
+        nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+        nextBtn.style.cssText = 'padding: 5px 10px; border: 1px solid #ccc; background: #f8f9fa; color: black; cursor: pointer;';
+        if (currentPage < totalPages && totalPages > 0) {
+            nextBtn.addEventListener('click', () => loadHistory(currentPage + 1));
+        }
+        paginationButtons.appendChild(nextBtn);
+    }
+    
+    /* --- Filter activities by date range --- */
+    function applyDateFilter() {
+        dateFilter.from = activityDateFromInput.value.trim() || null;
+        dateFilter.to = activityDateToInput.value.trim() || null;
+        currentPage = 1; // Reset to first page when applying filter
+        loadHistory(1);
+    }
+    
+    /* --- Clear date filter --- */
+    function clearDateFilter() {
+        activityDateFromInput.value = '';
+        activityDateToInput.value = '';
+        dateFilter = { from: null, to: null };
+        currentPage = 1; // Reset to first page when clearing filter
+        loadHistory(1);
     }
 
     // Get all note input elements
@@ -450,6 +571,103 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (error) {
                 console.error("Error updating order:", error);
                 alert("An error occurred while updating the order. Please try again.");
+            }
+        });
+    }
+    
+    /* --- Add event listeners for date filter buttons --- */
+    if (filterActivitiesBtn) {
+        filterActivitiesBtn.addEventListener("click", applyDateFilter);
+    }
+    
+    if (clearActivityFilterBtn) {
+        clearActivityFilterBtn.addEventListener("click", clearDateFilter);
+    }
+    
+    if (printActivitiesBtn) {
+        printActivitiesBtn.addEventListener("click", printCurrentPage);
+    }
+    
+    /* --- Print current page activities --- */
+    function printCurrentPage() {
+        if (!activeCustomer) {
+            alert("No customer selected");
+            return;
+        }
+        
+        const printWindow = window.open('', '_blank');
+        const tableElement = document.querySelector('.activity-table');
+        
+        if (!tableElement) {
+            alert("No activities to print");
+            return;
+        }
+        
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Activity Report - ${activeCustomer.name}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
+                        h2 { color: #2c3e50; margin-bottom: 15px; }
+                        .customer-info { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; font-weight: bold; }
+                        .text-right { text-align: right; }
+                        .footer-info { margin-top: 20px; font-size: 12px; color: #666; }
+                        @media print { body { margin: 10px; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>Jagannath Wellness - Customer Activity Report</h1>
+                    
+                    <div class="customer-info">
+                        <h2>Customer Information</h2>
+                        <div class="info-row">
+                            <strong>Name:</strong> <span>${activeCustomer.name}</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Phone:</strong> <span>${activeCustomer.phone || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Current Balance:</strong> <span>₹${parseFloat(activeCustomer.balance_due).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>SP Due:</strong> <span>${parseFloat(activeCustomer.sp_due).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                    </div>
+                    
+                    <h2>Activity History - Page ${currentPage}</h2>
+                    ${tableElement.outerHTML}
+                    
+                    <div class="footer-info">
+                        <p><strong>Generated on:</strong> ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })} at ${new Date().toLocaleTimeString('en-IN')}</p>
+                        <p><strong>Page:</strong> ${currentPage} (Showing ${Math.min((currentPage - 1) * activitiesPerPage + 1, totalActivities)}-${Math.min(currentPage * activitiesPerPage, totalActivities)} of ${totalActivities} activities)</p>
+                    </div>
+                </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        printWindow.print();
+    }
+    
+    /* --- Add enter key support for date inputs --- */
+    if (activityDateFromInput) {
+        activityDateFromInput.addEventListener("keypress", (e) => {
+            if (e.key === 'Enter') {
+                applyDateFilter();
+            }
+        });
+    }
+    
+    if (activityDateToInput) {
+        activityDateToInput.addEventListener("keypress", (e) => {
+            if (e.key === 'Enter') {
+                applyDateFilter();
             }
         });
     }

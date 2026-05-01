@@ -193,6 +193,31 @@
 
     <!-- History -->
     <h4 style="margin-left: 40px;">Activity History</h4>
+    
+    <!-- Date Range Filter and Pagination Controls -->
+    <div style="margin-left: 40px; margin-bottom: 15px;">
+        <div class="date-range-container" style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+            <div>
+                <label for="activity-date-from" style="margin-right: 5px;">From:</label>
+                <input type="date" id="activity-date-from" class="date-picker" />
+            </div>
+            <div>
+                <label for="activity-date-to" style="margin-right: 5px;">To:</label>
+                <input type="date" id="activity-date-to" class="date-picker" />
+            </div>
+            <button id="filter-activities" style="background-color: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Filter</button>
+            <button id="clear-activity-filter" style="background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Clear</button>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div id="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div id="pagination-info" style="color: #666; font-size: 14px;"></div>
+            <div id="pagination-buttons" style="display: flex; gap: 5px;">
+                <button id="print-activities" style="background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">🖨️ Print</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="table-container" style="margin-left: 40px;">
         <div id="customer-activity-history"></div>
     </div>
